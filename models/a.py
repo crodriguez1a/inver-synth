@@ -115,6 +115,7 @@ def assemble_model(src: np.ndarray, arch_layers: list) -> keras.Model:
 
     # @paper: Spectrogram based CNN that receives the (log) spectrogram matrix as input
 
+    # @kapre:
     # abs(Spectrogram) in a shape of 2D data, i.e.,
     # `(None, n_channel, n_freq, n_time)` if `'channels_first'`,
     # `(None, n_freq, n_time, n_channel)` if `'channels_last'`,
@@ -141,16 +142,14 @@ def assemble_model(src: np.ndarray, arch_layers: list) -> keras.Model:
 
 
 if __name__ == "__main__":
-    # load audio sample
-
-    # define input path
+    # Load audio sample
     input_audio_path: str = os.getenv('AUDIO_WAV_INPUT', dx7_sample)
-    # define audio sample max duration
+    # Define audio sample max duration
     duration: float = 1
-    # extract raw audio
+    # Extract raw audio
     y_audio, sample_rate = input_raw_audio(input_audio_path, duration=duration)
 
-    # model assembly
+    # Model assembly
     """Conv 1 (2 Layers)"""
     c1: ArchLayer = ArchLayer(38, (13, 26), (13,26))
     c1_layers: list = [c1]
@@ -176,10 +175,10 @@ if __name__ == "__main__":
     x_train = x_train[:-slice]
     y_train = y_train[:-slice]
 
-    # summarize and compile the model
+    # Summarize and compile the model
     summarize_compile(model)
 
-    # fit and predict
+    # Fit, with validation
     model: keras.Model = fit(model,
                              x_train, y_train,
                              x_val, y_val,
@@ -187,13 +186,13 @@ if __name__ == "__main__":
 
     # TEMP
     if os.getenv('EXPERIMENTATION', True):
-        # freeze model
+        # Freeze model
         model.save('models/saved/dx7_sample.h5')
 
-        # predict
+        # Predict
         x_test: np.ndarray = np.array([input_2d] * 1)
         result: np.ndarray = predict(model, x_test, sample_rate)
 
-        # write audio
+        # Write audio
         new_audio: np.ndarray = stft_to_audio(result)
         sf.write('audio/outputs/new_audio.wav', new_audio, sample_rate)
