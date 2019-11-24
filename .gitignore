@@ -102,3 +102,12 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# reference onlu
+models/docs/
+
+# large audio samples
+audio/m1pianoEXS24
+
+# mac
+.DS_Store
