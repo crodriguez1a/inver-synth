@@ -109,5 +109,11 @@ models/docs/
 # large audio samples
 audio/m1pianoEXS24
 
+# final audio outputs
+audio/outputs
+
 # mac
 .DS_Store
+
+# notebook experiments
+notebooks/experiments
