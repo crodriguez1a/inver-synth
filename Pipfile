@@ -7,14 +7,12 @@ verify_ssl = true
 pytest = "*"
 jupyter = "*"
 ipython = "*"
+matplotlib = "*"
 
 [packages]
 tensorflow = "*"
-librosa = "*"
-torch = "*"
-nnaudio = "*"
 kapre = "*"
-pysoundfile = "*"
+librosa = "*"
 
 [requires]
 python_version = "3.7"
