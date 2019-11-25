@@ -3,10 +3,13 @@ import os
 from dataclasses import dataclass, field
 
 import numpy as np
-import keras # TODO: update to tf.keras when kapre goes to tf2.0
-
 import librosa
+
+import keras # TODO: update to tf.keras when kapre goes to tf2.0
+# https://github.com/keunwoochoi/kapre/pull/58/commits/a3268110471466e4799621d0ae39bd05d84ee275
 from kapre.time_frequency import Spectrogram
+
+from models.utils import utils
 
 """
 The STFT spectrogram of the input signal is fed
@@ -26,10 +29,7 @@ dx7_sample: str = os.getcwd() + '/audio/samples/Yamaha-DX7-Bass-C2.wav'
 def input_raw_audio(path: str, sr: int=16384, duration: float=1.) -> tuple:
     # @paper: signal in a duration of 1 second with a sampling rate of 16384Hz
     # @paper: Input (16384 raw audio)
-    y_audio, sample_rate = librosa.load(path,
-                                        sr=sr, # `None` preserves sample rate
-                                        duration=duration,)
-    return (y_audio, sample_rate)
+    return utils.load_audio(path, sr, duration)
 
 def stft_to_audio(S: np.ndarray) -> np.ndarray:
     # Inverse STFT to audio
@@ -185,11 +185,17 @@ if __name__ == "__main__":
     input_2d: np.ndarray = np.expand_dims(y_audio, axis=0)
 
     model: keras.Model = assemble_model(input_2d,
-                                        arch_layers=c3_layers,)
+                                        arch_layers=c1_layers,)
 
     # simulate dataset
-    n_samples: int = 1000
-    x_train: np.ndarray = np.array([input_2d] * n_samples)
+    # n_samples: int = 1000
+    # x_train: np.ndarray = np.array([input_2d] * n_samples)
+
+    # m1 dataset
+    m1_dataset: str = os.getcwd() + '/data/large/dataset_2019-11-25_10:05:31_375553.npy'
+    x_train: np.ndarray = np.load(os.getenv('TRAINING_SET', m1_dataset))
+    n_samples: int = x_train.shape[0]
+
     y_train: np.ndarray = np.random.uniform(size=(n_samples,) + model.output_shape[1:])
 
     # Reserve samples for validation

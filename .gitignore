@@ -112,6 +112,9 @@ audio/m1pianoEXS24
 # final audio outputs
 audio/outputs
 
+# large datasets
+data/large
+
 # mac
 .DS_Store
 

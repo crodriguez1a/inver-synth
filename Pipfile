@@ -10,9 +10,11 @@ ipython = "*"
 matplotlib = "*"
 
 [packages]
-tensorflow = "*"
 kapre = "*"
 librosa = "*"
+keras = "*"
+tensorflow = "*"
+argparse = "*"
 
 [requires]
 python_version = "3.7"
