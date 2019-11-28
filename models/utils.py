@@ -2,6 +2,7 @@ import os
 import re
 import datetime
 import librosa
+import numpy as np
 
 class Utils:
     @staticmethod
@@ -11,10 +12,15 @@ class Utils:
                                             duration=duration,)
         return (y_audio, sample_rate)
 
+    @staticmethod
+    def stft_to_audio(S: np.ndarray) -> np.ndarray:
+        # Inverse STFT to audio
+        return librosa.griffinlim(S)
+
     @property
-    def fingerprint(self, prefix: str='', postfix: str='') -> str:
+    def fingerprint(self) -> str:
         timestamp: str = datetime.datetime.today().__str__()
-        return prefix + re.sub(r'\.|\s', '_', timestamp) + postfix
+        return re.sub(r'\.|\s|\\|\:', '', timestamp)
 
     def h5_save(self, model, save_path: str, filename_attrs: str='noattrs'):
         try:

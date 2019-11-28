@@ -16,6 +16,7 @@ librosa = "*"
 keras = "*"
 tensorflow = "*"
 argparse = "*"
+python-dotenv = "*"
 
 [requires]
 python_version = "3.7"
