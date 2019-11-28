@@ -8,6 +8,7 @@ pytest = "*"
 jupyter = "*"
 ipython = "*"
 matplotlib = "*"
+pandas = "*"
 
 [packages]
 kapre = "*"

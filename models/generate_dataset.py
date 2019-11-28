@@ -1,8 +1,6 @@
 import librosa
 import os
 import numpy as np
-import datetime
-import re
 
 from models.utils import utils
 
@@ -47,9 +45,7 @@ if __name__ == "__main__":
     dataset: np.ndarray = raw_dataset(paths)
 
     # Create a unique filename
-    timestamp: str = datetime.datetime.today().__str__()
-    fingerprint: str = re.sub(r'\.|\s', '_', timestamp)
-    filename: str = f"{args.save}/dataset_{fingerprint}.npy"
+    filename: str = f"{args.save}/dataset_{utils.fingerprint}.npy"
 
     # Save output
     np.save(filename, dataset)

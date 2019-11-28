@@ -107,13 +107,16 @@ venv.bak/
 models/docs/
 
 # large audio samples
-audio/m1pianoEXS24
+audio/large
 
 # final audio outputs
 audio/outputs
 
 # large datasets
 data/large
+
+# large saved models
+models/saved/large
 
 # mac
 .DS_Store

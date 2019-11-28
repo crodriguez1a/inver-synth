@@ -1,6 +1,5 @@
 import logging
 import os
-from dataclasses import dataclass, field
 
 import numpy as np
 import librosa
@@ -10,6 +9,7 @@ import keras # TODO: update to tf.keras when kapre goes to tf2.0
 from kapre.time_frequency import Spectrogram
 
 from models.utils import utils
+from models.abstract import C
 
 """
 The STFT spectrogram of the input signal is fed
@@ -99,13 +99,6 @@ def predict(model: keras.Model,
 # 2D strided convolutional layer with F filters in size of (K1,K2)
 # and strides (S1,S2).
 
-@dataclass
-class ArchLayer:
-    filters: int
-    window_size: tuple
-    strides: tuple
-    activation: str = 'relu'
-
 def assemble_model(src: np.ndarray,
                    arch_layers: list,
                    n_dft: int=128,
@@ -123,7 +116,7 @@ def assemble_model(src: np.ndarray,
                                  trainable_kernel=True, name='static_stft',
                                  image_data_format='channels_first',
                                  return_decibel_spectrogram=True,)(inputs)
-
+    
     for arch_layer in arch_layers:
         x = keras.layers.Conv2D(arch_layer.filters,
                                 arch_layer.window_size,
@@ -137,10 +130,7 @@ def assemble_model(src: np.ndarray,
     x = keras.layers.Dense(512)(x)
 
     # @paper: FC-368(sigmoid)
-    x = keras.layers.Dense(368, activation='sigmoid', name='predictions')(x)
-
-    # experiment with upsampling
-    outputs = keras.layers.UpSampling2D(size=(2, 2), interpolation='nearest')(x)
+    outputs = keras.layers.Dense(368, activation='sigmoid', name='predictions')(x)
 
     return keras.Model(inputs=inputs, outputs=outputs)
 
@@ -155,45 +145,41 @@ if __name__ == "__main__":
 
     # Model assembly
     """Conv 1 (2 Layers)"""
-    c1: ArchLayer = ArchLayer(38, (13, 26), (13,26))
+    c1: C = C(38, (13, 26), (13,26))
     c1_layers: list = [c1]
 
     """Conv 2 (3 Layers)"""
     c3_layers : list = [
-        ArchLayer(35, (6,7), (5,6)),
-        ArchLayer(87, (6,9), (5,8))
+        C(35, (6,7), (5,6)),
+        C(87, (6,9), (5,8))
     ]
 
     """Conv 3 (4 Layers)"""
     c4_layers: list = [
-        ArchLayer(32, (4,5), (3,4)),
-        ArchLayer(98, (4,6), (3,5)),
-        ArchLayer(128, (4,6), (3,5))
+        C(32, (4,5), (3,4)),
+        C(98, (4,6), (3,5)),
+        C(128, (4,6), (3,5))
     ]
 
     """Conv 6XL, 7 Layers"""
     c6XL_layers: list = [
-        ArchLayer(64, (3,3), (2,2)),
-        ArchLayer(128, (3,3), (2,2)),
-        ArchLayer(128, (3,4), (2,3)),
-        ArchLayer(128, (3,3), (2,2)),
-        ArchLayer(256, (3,3), (2,2)),
-        ArchLayer(256, (3,3), (1,2))
+        C(64, (3,3), (2,2)),
+        C(128, (3,3), (2,2)),
+        C(128, (3,4), (2,3)),
+        C(128, (3,3), (2,2)),
+        C(256, (3,3), (2,2)),
+        C(256, (3,3), (1,2))
     ]
 
-    # @kapre: input should be a 2D array, `(audio_channel, audio_length)`.
-    input_2d: np.ndarray = np.expand_dims(y_audio, axis=0)
+    # `channels_first` input should be a 2D array, `(audio_channel, audio_length)`.
+    input_2d: np.ndarray = y_audio[np.newaxis, :]
 
     model: keras.Model = assemble_model(input_2d,
-                                        arch_layers=c1_layers,)
+                                        arch_layers=c3_layers,)
 
-    # simulate dataset
-    # n_samples: int = 1000
-    # x_train: np.ndarray = np.array([input_2d] * n_samples)
-
-    # m1 dataset
-    m1_dataset: str = os.getcwd() + '/data/large/dataset_2019-11-25_10:05:31_375553.npy'
-    x_train: np.ndarray = np.load(os.getenv('TRAINING_SET', m1_dataset))
+    # n-synth bass dataset https://magenta.tensorflow.org/datasets/nsynth#files
+    nsynth_bass_dataset: str = os.getcwd() + '/data/large/dataset_2019-11-26_10:14:08_880147.npy'
+    x_train: np.ndarray = np.load(os.getenv('TRAINING_SET', nsynth_bass_dataset))
     n_samples: int = x_train.shape[0]
 
     y_train: np.ndarray = np.random.uniform(size=(n_samples,) + model.output_shape[1:])
@@ -209,22 +195,24 @@ if __name__ == "__main__":
     summarize_compile(model)
 
     # Fit, with validation
-    epochs: int = 10 #100
+    epochs: int = 3 #100
     model: keras.Model = fit(model,
                              x_train, y_train,
                              x_val, y_val,
                              epochs=epochs,)
 
     # TEMP
-    if os.getenv('EXPERIMENTATION', True):
-        # Freeze model
-        model.save(f'models/saved/DX7Sample_epochs={epochs}.h5')
-
+    if os.getenv('EXPERIMENTATION', True): # TODO
         # Predict
-        x_test: np.ndarray = np.array([input_2d] * 1)
+        # `channels_first` = 1 channel, 1 sample of a signal with length n
+        x_test: np.ndarray = y_audio[np.newaxis, np.newaxis, :]
         result: np.ndarray = predict(model, x_test, sample_rate)
 
         # Write audio
-        # TODO: is the output? inverse decibel spectrogram
         new_audio: np.ndarray = stft_to_audio(result)
-        librosa.output.write_wav('audio/outputs/new_audio.wav', new_audio, sample_rate)
+        wav_out: str = os.getenv('AUDIO_WAV_OUTPUT', 'audio/outputs/new_audio.wav')
+        librosa.output.write_wav(wav_out, new_audio, sample_rate)
+
+        # Save model
+        save_path: str = os.getenv('SAVED_MODELS_PATH', '/models/saved/large')
+        utils.h5_save(model, save_path, filename_attrs=f'n_epochs={epochs}')
