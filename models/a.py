@@ -61,7 +61,6 @@ def assemble_model(src: np.ndarray,
     # @paper: sigmoid activations with binary cross entropy loss
     # @paper: FC-512
     x = keras.layers.Dense(512)(x)
-
     # @paper: FC-368(sigmoid)
     outputs = keras.layers.Dense(368, activation='sigmoid', name='predictions')(x)
 

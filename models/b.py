@@ -101,11 +101,8 @@ if __name__ == "__main__":
     y_train: np.ndarray = np.random.uniform(size=(n_samples,) + model.output_shape[1:])
 
     # Reserve samples for validation
-    slice = int(n_samples * .2)
-    x_val = x_train[-slice:]
-    y_val = y_train[-slice:]
-    x_train = x_train[:-slice]
-    y_train = y_train[:-slice]
+    split: float = .2
+    x_val, y_val, x_train, y_train = train_val_split(x_train, y_train, split)
 
     # Summarize and compile the model
     summarize_compile(model)
