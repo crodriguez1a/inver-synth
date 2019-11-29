@@ -61,6 +61,7 @@ def assemble_model(src: np.ndarray,
     # @paper: sigmoid activations with binary cross entropy loss
     # @paper: FC-512
     x = keras.layers.Dense(512)(x)
+
     # @paper: FC-368(sigmoid)
     outputs = keras.layers.Dense(368, activation='sigmoid', name='predictions')(x)
 
@@ -68,7 +69,6 @@ def assemble_model(src: np.ndarray,
 
 
 if __name__ == "__main__":
-
     # Load audio sample
     input_audio_path: str = os.getenv('AUDIO_WAV_INPUT')
     # Define audio sample max duration
@@ -110,7 +110,6 @@ if __name__ == "__main__":
                              x_val, y_val,
                              epochs=epochs,)
 
-    # TEMP
     if os.getenv('EXPERIMENTATION', False):
         # Predict
         x_test: np.ndarray = data_format_audio(y_audio, data_format)

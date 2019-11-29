@@ -62,15 +62,7 @@ c6XL_layers: list = [
     C(256, (3,3), (1,2))
 ]
 
-# @paper:
-# These four layers are 1D strided
-# convolutional layers that operates on the time axis only.
-
 """Conv E2E, 11 Layers"""
-# @paper:
-# The first four layers degenerates to
-# 1D strided convolutions by setting
-# both K1 and S1 to 1. C(F,K1,K2,S1,S2)
 cE2E_1d_layers: list = [
     C(96, (64), (4)),
     C(96, (32), (4)),
@@ -78,9 +70,6 @@ cE2E_1d_layers: list = [
     C(257, (8), (4))
 ]
 
-# @paper:
-# followed by additional six 2D strided convolutional layers that
-# are identical to those of Conv6 model
 cE2E_2d_layers: list = [
     C(32, (3,3), (2,2)),
     C(71, (3,3), (2,2)),
@@ -89,6 +78,8 @@ cE2E_2d_layers: list = [
     # TODO: fix negative dimensions
     # C(128, (3,3), (2,2)),
     # C(128, (3,3), (1,2))
+    C(128, (1,1), (2,2)),
+    C(128, (1,1), (1,2))
 ]
 
 layers_map: dict = {
@@ -100,5 +91,5 @@ layers_map: dict = {
     'C6': c6_layers,
     'C6XL': c6XL_layers,
     'CE2E': cE2E_1d_layers,
-    'CE2E_2D': cE2E_2d_layers,
+    'CE2E_2D': cE2E_2d_layers
 }

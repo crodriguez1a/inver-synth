@@ -9,7 +9,7 @@ import keras # TODO: update to tf.keras when kapre goes to tf2.0
 from kapre.time_frequency import Spectrogram
 
 from models.utils import utils
-from models.common import summarize_compile, fit, predict, data_format_audio
+from models.common import summarize_compile, fit, predict, data_format_audio, train_val_split
 from models.architectures import *
 
 """
@@ -45,6 +45,10 @@ def assemble_model(src: np.ndarray,
     # define shape not including batch size
     inputs = keras.Input(shape=src.shape, name='raw_audio')
 
+    # @paper:
+    # The first four layers degenerates to
+    # 1D strided convolutions by setting
+    # both K1 and S1 to 1. C(F,K1,K2,S1,S2)
     for i, arch_layer in enumerate(c1d_layers):
         x = inputs if i == 0 else x
         x = keras.layers.Conv1D(arch_layer.filters,
@@ -55,12 +59,15 @@ def assemble_model(src: np.ndarray,
     # @paper: learned representation
     x = keras.layers.Lambda(lambda x: keras.backend.expand_dims(x, axis=1))(x)
 
+    # @paper:
+    # followed by additional six 2D strided convolutional layers that
+    # are identical to those of Conv6 model
     for arch_layer in c2d_layers:
         x = keras.layers.Conv2D(arch_layer.filters,
                                 arch_layer.window_size,
                                 strides=arch_layer.strides,
                                 activation=arch_layer.activation,
-                                data_format=data_format,)(x) # data_format=None, dilation_rate=(1, 1), activation=None, use_bias=True, kernel_initializer='glorot_uniform', bias_initializer='zeros', kernel_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, bias_constraint=None)
+                                data_format=data_format,)(x)
 
     # @paper: sigmoid activations with binary cross entropy loss
 
@@ -74,7 +81,6 @@ def assemble_model(src: np.ndarray,
 
 
 if __name__ == "__main__":
-
     # Load audio sample
     input_audio_path: str = os.getenv('AUDIO_WAV_INPUT')
     # Define audio sample max duration
@@ -114,7 +120,6 @@ if __name__ == "__main__":
                              x_val, y_val,
                              epochs=epochs,)
 
-    # TEMP
     if os.getenv('EXPERIMENTATION', False):
         # `channels_first` = 1 channel, 1 sample of a signal with length n
         x_test: np.ndarray = data_format_audio(y_audio, data_format)

@@ -3,6 +3,7 @@ import re
 import datetime
 import librosa
 import numpy as np
+import uuid
 
 class Utils:
     @staticmethod
@@ -19,8 +20,7 @@ class Utils:
 
     @property
     def fingerprint(self) -> str:
-        timestamp: str = datetime.datetime.today().__str__()
-        return re.sub(r'\.|\s|\\|\:', '', timestamp)
+        return uuid.uuid4()
 
     def h5_save(self, model, save_path: str, filename_attrs: str='noattrs'):
         try:
