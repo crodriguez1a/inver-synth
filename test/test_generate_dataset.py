@@ -1,5 +1,5 @@
 import os
-from models.generate_dataset import collect_paths, raw_dataset
+from models.common.generate_dataset import collect_paths, raw_dataset
 
 class TestGenerateDataset:
     def test_collect_paths(self):

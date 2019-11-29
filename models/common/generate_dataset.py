@@ -2,7 +2,7 @@ import librosa
 import os
 import numpy as np
 
-from models.utils import utils
+from models.common.utils import utils
 
 def collect_paths(base_path: str) -> list:
     dir: list = []
@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     """
     Usage:
-    `python -m models.generate_dataset -w /path/to/wavs -s /path/to/saved`
+    `python -m models.common.generate_dataset -w /path/to/wavs -s /path/to/saved`
     """
 
     # Collect wavs from path

@@ -1,5 +1,5 @@
 import re
-from models.utils import utils
+from models.common.utils import utils
 
 class TestUtils:
     def test_load_audio(self):
