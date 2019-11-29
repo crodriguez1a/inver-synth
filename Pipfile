@@ -8,11 +8,16 @@ pytest = "*"
 jupyter = "*"
 ipython = "*"
 matplotlib = "*"
+pandas = "*"
 
 [packages]
-tensorflow = "*"
 kapre = "*"
 librosa = "*"
+keras = "*"
+tensorflow = "*"
+argparse = "*"
+python-dotenv = "*"
+soundfile = "*"
 
 [requires]
 python_version = "3.7"
