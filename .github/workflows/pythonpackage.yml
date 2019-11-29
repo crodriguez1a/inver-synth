@@ -19,7 +19,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install linux dependencies
       run: |
-      apt-get install libsndfile1
+        apt-get install libsndfile1
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
