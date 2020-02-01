@@ -9,15 +9,18 @@ jupyter = "*"
 ipython = "*"
 matplotlib = "*"
 pandas = "*"
+flake8 = "*"
+autopep8 = "*"
 
 [packages]
 kapre = "*"
 librosa = "*"
-keras = "*"
-tensorflow = "*"
+keras = ">=2.0"
+tensorflow = "<=2.0.1"
 argparse = "*"
 python-dotenv = "*"
 soundfile = "*"
+libsndfile = "*"
 
 [requires]
 python_version = "3.7"
