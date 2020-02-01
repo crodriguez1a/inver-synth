@@ -1,18 +1,20 @@
 # inver-synth
 > A Python implementation of the [InverSynth](https://arxiv.org/abs/1812.06349) method (Barkan, Tsiris, Koenigstein, Katz)
 
+---
+
 *NOTE: This implementation is a work in process. Contributions are welcome.*
 
-**Generating a Training Set from Raw Audio**
-
-Use the following utility to read a directory of `.wav` files and write the output to a numpy array
-  with the shape `(n_samples, audio_channel, audio_length)`
+### Generating a Training Set from Raw Audio
 
 ```
 python -m models.common.generate_dataset -w /path/to/wavs -s /path/to/data
 ```
 
-**Experimenting with the E2E and/or Spectrogram approaches**
+This utility to reads a specified directory of `.wav` files and writes the output to a numpy array
+  with the shape `(n_samples, audio_channel, audio_length)`
+
+### Experimenting with the E2E & Spectrogram models
 
 First, assign values to following environment variables:
 
