@@ -17,7 +17,6 @@ keras = "*"
 tensorflow = "*"
 argparse = "*"
 python-dotenv = "*"
-soundfile = "*"
 
 [requires]
 python_version = "3.7"
