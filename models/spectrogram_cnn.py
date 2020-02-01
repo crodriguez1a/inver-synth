@@ -10,7 +10,7 @@ from kapre.time_frequency import Spectrogram
 
 from models.app import summarize_compile, fit, predict, data_format_audio, train_val_split
 from models.common.utils import utils
-from models.common.architectures import *
+from models.common.architectures import layers_map
 
 """
 The STFT spectrogram of the input signal is fed

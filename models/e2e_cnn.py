@@ -10,7 +10,7 @@ from kapre.time_frequency import Spectrogram
 
 from models.app import summarize_compile, fit, predict, data_format_audio, train_val_split
 from models.common.utils import utils
-from models.common.architectures import *
+from models.common.architectures import cE2E_1d_layers, cE2E_2d_layers
 
 """
 End-to-End learning. A CNN predicts the synthesizer
