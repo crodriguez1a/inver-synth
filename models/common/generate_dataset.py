@@ -18,7 +18,7 @@ def raw_dataset(items: list, sample_rate: int = 16384, duration: float = 1.) -> 
     with shape `(n_samples, audio_channel, audio_length)`
     """
     t: tuple = tuple(utils.load_audio(item, sample_rate, duration)[0] for item in items)
-    # remove samples where sample rate could be normalized
+    # remove samples where sample rate could not be normalized
     t = tuple(i for i in t if i.shape[0] == sample_rate)
     stack: np.ndarray = np.vstack(t)
     return np.expand_dims(stack, axis=1)
