@@ -1,9 +1,7 @@
 # inver-synth
 > A Python implementation of the [InverSynth](https://arxiv.org/abs/1812.06349) method (Barkan, Tsiris, Koenigstein, Katz)
 
-**A pre-cursor**
-
-This implementation is a work in process. Contributions are welcome.
+*NOTE: This implementation is a work in process. Contributions are welcome.*
 
 **Generating a Training Set from Raw Audio**
 
