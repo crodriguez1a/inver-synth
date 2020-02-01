@@ -13,8 +13,8 @@ pandas = "*"
 [packages]
 kapre = "*"
 librosa = "*"
-keras = "*"
-tensorflow = "*"
+keras = ">=2.0"
+tensorflow = "<=2.0"
 argparse = "*"
 python-dotenv = "*"
 
