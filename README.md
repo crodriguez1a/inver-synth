@@ -3,7 +3,7 @@
 
 ---
 
-*NOTE: This implementation is a work in process. Contributions are welcome.*
+*NOTE: This implementation is a work in progress. Contributions are welcome.*
 
 ### Generating a Training Set from Raw Audio
 
