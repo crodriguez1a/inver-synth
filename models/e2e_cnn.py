@@ -127,9 +127,11 @@ if __name__ == "__main__":
 
         # Save model
         save_path: str = os.getenv('SAVED_MODELS_PATH')
-        utils.h5_save(model, save_path, filename_attrs=f'n_epochs={epochs}')
+        if save_path:
+            utils.h5_save(model, save_path, filename_attrs=f'n_epochs={epochs}')
 
         # Write audio
         new_audio: np.ndarray = utils.stft_to_audio(result)
         wav_out: str = os.getenv('AUDIO_WAV_OUTPUT')
-        librosa.output.write_wav(wav_out, new_audio, sample_rate)
+        if wav_out:
+            librosa.output.write_wav(wav_out, new_audio, sample_rate)
