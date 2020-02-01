@@ -1,12 +1,11 @@
-import logging
 import os
 
 import numpy as np
 import librosa
 
-import keras # TODO: update to tf.keras when kapre goes to tf2.0
+import keras  # TODO: update to tf.keras when kapre goes to tf2.0
 # https://github.com/keunwoochoi/kapre/pull/58/commits/a3268110471466e4799621d0ae39bd05d84ee275
-from kapre.time_frequency import Spectrogram
+# from kapre.time_frequency import Spectrogram
 
 from models.app import summarize_compile, fit, predict, data_format_audio, train_val_split
 from models.common.utils import utils
@@ -23,10 +22,13 @@ synthesizer parameter configuration.
 """
 
 """Audio Pre-processing"""
-def input_raw_audio(path: str, sr: int=16384, duration: float=1.) -> tuple:
+
+
+def input_raw_audio(path: str, sr: int = 16384, duration: float = 1.) -> tuple:
     # @paper: signal in a duration of 1 second with a sampling rate of 16384Hz
     # @paper: Input (16384 raw audio)
     return utils.load_audio(path, sr, duration)
+
 
 """Model Architecture"""
 # @ paper:
@@ -35,12 +37,13 @@ def input_raw_audio(path: str, sr: int=16384, duration: float=1.) -> tuple:
 # 2D strided convolutional layer with F filters in size of (K1,K2)
 # and strides (S1,S2).
 
+
 def assemble_model(src: np.ndarray,
                    c1d_layers: list,
                    c2d_layers: list,
-                   n_dft: int=128,
-                   n_hop: int=64,
-                   data_format: str='channels_first',) -> keras.Model:
+                   n_dft: int = 128,
+                   n_hop: int = 64,
+                   data_format: str = 'channels_first',) -> keras.Model:
 
     # define shape not including batch size
     inputs = keras.Input(shape=src.shape, name='raw_audio')
@@ -49,6 +52,7 @@ def assemble_model(src: np.ndarray,
     # The first four layers degenerates to
     # 1D strided convolutions by setting
     # both K1 and S1 to 1. C(F,K1,K2,S1,S2)
+    x = None
     for i, arch_layer in enumerate(c1d_layers):
         x = inputs if i == 0 else x
         x = keras.layers.Conv1D(arch_layer.filters,
@@ -75,7 +79,8 @@ def assemble_model(src: np.ndarray,
     x = keras.layers.Dense(512)(x)
 
     # @paper: FC-368(sigmoid)
-    outputs = keras.layers.Dense(368, activation='sigmoid', name='predictions')(x)
+    outputs = keras.layers.Dense(
+        368, activation='sigmoid', name='predictions')(x)
 
     return keras.Model(inputs=inputs, outputs=outputs)
 
@@ -104,7 +109,8 @@ if __name__ == "__main__":
     x_train: np.ndarray = np.load(dataset)
     n_samples: int = x_train.shape[0]
 
-    y_train: np.ndarray = np.random.uniform(size=(n_samples,) + model.output_shape[1:])
+    y_train: np.ndarray = np.random.uniform(
+        size=(n_samples,) + model.output_shape[1:])
 
     # Reserve samples for validation
     split: float = .2
@@ -114,7 +120,7 @@ if __name__ == "__main__":
     summarize_compile(model)
 
     # Fit, with validation
-    epochs: int = int(os.getenv('EPOCHS', '100')) # @paper: 100
+    epochs: int = int(os.getenv('EPOCHS', '100'))  # @paper: 100
     model: keras.Model = fit(model,
                              x_train, y_train,
                              x_val, y_val,
@@ -128,7 +134,7 @@ if __name__ == "__main__":
         # Save model
         save_path: str = os.getenv('SAVED_MODELS_PATH')
         if save_path:
-            utils.h5_save(model, save_path, filename_attrs=f'n_epochs={epochs}')
+            utils.h5_save(model, save_path)
 
         # Write audio
         new_audio: np.ndarray = utils.stft_to_audio(result)

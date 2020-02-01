@@ -1,6 +1,7 @@
 import os
 from models.common.generate_dataset import collect_paths, raw_dataset
 
+
 class TestGenerateDataset:
     def test_collect_paths(self):
         base_path = os.getcwd() + f'/audio/samples/'

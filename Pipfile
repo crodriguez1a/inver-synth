@@ -9,6 +9,8 @@ jupyter = "*"
 ipython = "*"
 matplotlib = "*"
 pandas = "*"
+flake8 = "*"
+autopep8 = "*"
 
 [packages]
 kapre = "*"
