@@ -98,6 +98,7 @@ tensorflow-estimator==2.0.1
 termcolor==1.1.0
 terminado==0.8.3
 testpath==0.4.4
+Theano==1.0.4
 tornado==6.0.3
 traitlets==4.3.3
 urllib3==1.25.8
