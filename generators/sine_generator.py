@@ -18,8 +18,8 @@ class SineGenerator(Generator):
 
 
 if __name__ == "__main__":
-    g = SineGenerator(name="test_generator",dataset_dir="test_datasets",wave_file_dir="test_waves",parameters=[
-        Parameter("f1",[100,110,120,130,140]),
+    g = SineGenerator(name="test_generator2",dataset_dir="test_datasets",wave_file_dir="test_waves",parameters=[
+        Parameter("f1",[100,110,120,130,140,150,170]),
         Parameter("f2",[200,220,240,260,280])
     ], length=1.0, sample_rate=44100)
     g.run()

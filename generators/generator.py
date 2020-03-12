@@ -4,12 +4,13 @@ import numpy as np
 from typing import Dict, Tuple, Sequence, List
 Sample = Tuple[int,float,np.ndarray,np.ndarray]
 Dataset = Sequence[Sample]
+import random
 
 
 # Dataset format: numpy.ndarray (num_points,1,num_samples)
 
 class Generator():
-    def __init__(self,name: str, dataset_dir:str, wave_file_dir:str, parameters: list, length:1.0, sample_rate:44100):
+    def __init__(self,name: str, dataset_dir:str, wave_file_dir:str, parameters: list, length:1.0, sample_rate:44100, num_examples=10):
         self.name = name
         self.parameters = parameters
         self.dataset_dir = dataset_dir
@@ -17,10 +18,16 @@ class Generator():
         self.length = length
         self.sample_rate = sample_rate
         self.index = 0
+        self.generation = "sampling"
+        self.max = num_examples
 
     def run(self):
-        dataset = self.generate_all()
-        training_samples = []
+        self.index = 0
+        dataset = []
+        if self.generation == "complete":
+            dataset = self.recursively_generate_all(self.parameters)
+        else:
+            dataset = self.sample_space(self.parameters,self.max)
 
         audio = tuple(t[2][:16384] for t in dataset)
         audio_data = np.expand_dims(np.vstack(audio), axis=1)
@@ -32,12 +39,19 @@ class Generator():
         print("Param data: {}".format(param_data.shape))
         np.save(self.get_dataset_filename(dataset,"params"),audio_data)
 
+    def sample_space(self,parameter_list,sample_size=1000)->Dataset:
+        print("Sampling {} points from parameter space".format(sample_size))
+        dataset = []
+        for i in range(sample_size):
+            params = [(p.name,random.choice(p.levels)) for p in parameter_list]
+            dataset.append(self.generate_sound(params))
+        return dataset
+
+
     # Runs through the whole parameter space, setting up parameters and calling the generation function
     # Excuse slightly hacky recusions - sure there's a more numpy-ish way to do it!
-    def generate_all(self,parameter_list: list = None, parameter_set=[],return_list=[])->Dataset:
-        if not parameter_list:
-            parameter_list = self.parameters
-            self.index = 0
+    def recursively_generate_all(self,parameter_list: list, parameter_set=[],return_list=[])->Dataset:
+        print("Generating entire parameter space")
         param = parameter_list[0]
         remaining = parameter_list[1:]
         for p in param.levels:
@@ -46,7 +60,7 @@ class Generator():
             if len(remaining) == 0:
                 return_list.append(self.generate_sound(ps))
             else:
-                self.generate_all(remaining,ps,return_list)
+                self.recursively_generate_all(remaining,ps,return_list)
         return return_list
 
     def generate_sound(self,parameter_set:list) -> Sample:
