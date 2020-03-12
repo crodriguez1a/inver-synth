@@ -1,7 +1,15 @@
+# Test files
+playing/
+test_datasets/*
+test_waves/*
+data/*
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+
 
 # C extensions
 *.so
