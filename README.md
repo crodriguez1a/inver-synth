@@ -32,6 +32,14 @@ First, assign values to following environment variables:
 
 - `AUDIO_WAV_OUTPUT` - if set, will convert prediction output to raw audio and save as a `wav`
 
+- `ARCHITECTURE` - select from pre-defined InverSynth Architectures.
+
+Select one of the following (default is `C1`):
+
+- `C1`, `C2`, `C3`, `C4`, `C5`, `C6`, `C6XL`, `CE2E`, `CE2E_2D`
+
+![workflow](docs/img/architectures.png "Mimimun, Maximum")
+
 Then run the following:
 
 >  End-to-End learning. A CNN predicts the synthesizer parameter configuration directly from the raw audio. The first

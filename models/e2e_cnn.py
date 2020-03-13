@@ -76,6 +76,7 @@ def assemble_model(src: np.ndarray,
     # @paper: sigmoid activations with binary cross entropy loss
 
     # @paper: FC-512
+    x = keras.layers.Flatten()(x)
     x = keras.layers.Dense(512)(x)
 
     # @paper: FC-368(sigmoid)
@@ -133,11 +134,9 @@ if __name__ == "__main__":
 
         # Save model
         save_path: str = os.getenv('SAVED_MODELS_PATH')
-        if save_path:
-            utils.h5_save(model, save_path)
+        utils.h5_save(model, save_path)
 
         # Write audio
-        new_audio: np.ndarray = utils.stft_to_audio(result)
+        new_audio: np.ndarray = result
         wav_out: str = os.getenv('AUDIO_WAV_OUTPUT')
-        if wav_out:
-            librosa.output.write_wav(wav_out, new_audio, sample_rate)
+        utils.write_audio(wav_out, new_audio, sample_rate)

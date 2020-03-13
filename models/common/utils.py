@@ -18,6 +18,12 @@ class Utils:
         # Inverse STFT to audio
         return librosa.griffinlim(S)
 
+    @staticmethod
+    def write_audio(path: str, audio: np.ndarray, sample_rate: int):
+        if os.path.isfile(path):
+            librosa.output.write_wav(path, audio, sample_rate)
+            print(f'Written successfully to {wav_out}')
+
     @property
     def fingerprint(self) -> str:
         return uuid.uuid4()

@@ -95,7 +95,7 @@ def predict(model: keras.Model,
     # is_channels_first: bool = data_format == 'channels_first'
     # result = result[0, 0] if is_channels_first else result[0, :, :, 0]
 
-    result = result[0, 0]
+    # result = result[0, 0]
 
     return result
 
