@@ -2,33 +2,47 @@
 from scipy.io.wavfile import write as write_wav
 import numpy as np
 from typing import Dict, Tuple, Sequence, List
-Sample = Tuple[int,float,np.ndarray,np.ndarray]
-Dataset = Sequence[Sample]
+from keras.utils import to_categorical
+from dataclasses import dataclass
+ParamValue = Tuple[str,float,List[float]]
 import random
+
+from generators.sound_generator import SoundGenerator
 
 
 # Dataset format: numpy.ndarray (num_points,1,num_samples)
 
-class Generator():
-    def __init__(self,name: str, dataset_dir:str, wave_file_dir:str, parameters: list, length:1.0, sample_rate:44100, num_examples=10):
+class DatasetGenerator():
+    def __init__(self,name: str, dataset_dir:str, wave_file_dir:str, parameters: list ):
         self.name = name
         self.parameters = parameters
         self.dataset_dir = dataset_dir
         self.wave_file_dir = wave_file_dir
-        self.length = length
-        self.sample_rate = sample_rate
         self.index = 0
-        self.generation = "sampling"
-        self.max = num_examples
 
-    def run(self):
+    def generate(self,sound_generator:SoundGenerator,length:float=0.1,sample_rate:int=44100,max:int=10,method:str='complete'):
         self.index = 0
-        dataset = []
-        if self.generation == "complete":
-            dataset = self.recursively_generate_all(self.parameters)
+        dataset:List[Sample] = []
+        if method == "complete":
+            dataset = self.parameters.recursively_generate_all()
         else:
-            dataset = self.sample_space(self.parameters,self.max)
+            dataset = self.parameters.sample_space(sample_size=max)
 
+        n_samps = int(length*sample_rate)
+        for p in dataset:
+            p.length = length
+            p.sample_rate = sample_rate
+            print("Samplie: {}".format(p))
+            audio = sound_generator.generate(
+                dict(p.parameter_values),self.get_wave_filename(self.index),
+                p.length, p.sample_rate)
+            p.audio = audio[:n_samps]
+            if not sound_generator.creates_wave_file():
+                self.write_file(audio,self.get_wave_filename(self.index),sample_rate)
+            self.index = self.index + 1
+
+
+    def save_datasets(self):
         audio = tuple(t[2][:16384] for t in dataset)
         audio_data = np.expand_dims(np.vstack(audio), axis=1)
         print("Audio data: {}".format(audio_data.shape))
@@ -39,19 +53,82 @@ class Generator():
         print("Param data: {}".format(param_data.shape))
         np.save(self.get_dataset_filename(dataset,"params"),audio_data)
 
-    def sample_space(self,parameter_list,sample_size=1000)->Dataset:
+
+    def get_dataset_filename(self,dataset,type:str)->str:
+        return "{}/{}_{}".format(self.dataset_dir,self.name,type)
+
+    def get_wave_filename(self,index:int)->str:
+        return "{}/{}_{:05d}.wav".format(self.wave_file_dir,self.name,index)
+
+
+    # Assumes that the data is -1..1 floating point
+    def write_file(self,data : np.ndarray,filename:str,sample_rate:int):
+        int_data = (data * np.iinfo(np.int16).max).astype(int)
+        write_wav(filename, sample_rate, data)
+
+
+# Model architectures
+@dataclass
+class Sample:
+    parameter_values: List[Tuple[str,float]]
+    parameter_encoding:List[List[float]]
+    length:float=0.1
+    sample_rate:int = 44100
+    audio:np.ndarray = np.zeros(10)
+
+class Parameter:
+    def __init__(self,name: str, levels: list):
+        self.name=name
+        self.levels = levels
+
+    def get_levels(self)->List[ParamValue]:
+        return [self.get_value(i) for i in range(len(self.levels))]
+
+    def sample(self)->ParamValue:
+        index:int = random.choice(range(len(self.levels)))
+        print("Sampling {}".format(index))
+        return self.get_value(index)
+
+    def get_value(self,index:int)->ParamValue:
+        return (
+            self.name,
+            #Actual value
+            self.levels[index],
+            #One HOT encoding
+            to_categorical(index,num_classes=len(self.levels)))
+
+    def decode(self,one_hot:List[float])->float:
+        d2 = list(to_categorical(one_hot).astype(int)[1])
+        ind = d2.index(1)
+        return self.levels[ind]
+
+    def from_output(self,current_output:List[float])->Tuple[float,List[float]]:
+        param_data = current_output[:len(self.levels)]
+        remainder = current_output[len(self.levels):]
+        my_val = self.decode(param_data)
+        return (my_val,remainder)
+
+
+
+class ParameterSet:
+    def __init__(self,parameters: List[Parameter] ):
+        self.parameters = parameters
+
+    def sample_space(self,sample_size=1000)->Sequence[Sample]:
         print("Sampling {} points from parameter space".format(sample_size))
         dataset = []
         for i in range(sample_size):
-            params = [(p.name,random.choice(p.levels)) for p in parameter_list]
-            dataset.append(self.generate_sound(params))
+            params = [p.sample() for p in self.parameters]
+            dataset.append(self.to_sample(params))
         return dataset
 
 
     # Runs through the whole parameter space, setting up parameters and calling the generation function
     # Excuse slightly hacky recusions - sure there's a more numpy-ish way to do it!
-    def recursively_generate_all(self,parameter_list: list, parameter_set=[],return_list=[])->Dataset:
+    def recursively_generate_all(self,parameter_list: list=None, parameter_set=[],return_list=[])->Sequence[Sample]:
         print("Generating entire parameter space")
+        if parameter_list is None:
+            parameter_list = self.parameters
         param = parameter_list[0]
         remaining = parameter_list[1:]
         for p in param.levels:
@@ -63,44 +140,22 @@ class Generator():
                 self.recursively_generate_all(remaining,ps,return_list)
         return return_list
 
-    def generate_sound(self,parameter_set:list) -> Sample:
-        index = self.index
-        self.index = self.index + 1
-        param_vals = [t[1] for t in parameter_set]
-        filename:str = self.get_wave_filename(index)
-        data = self.do_sound_generation(dict(parameter_set),filename)
-        if self.should_write_wave():
-            self.write_file(data,filename)
-        return (index,filename,data,param_vals)
-
-    def do_sound_generation(self,parameter_set:dict,base_filename:str)->np.ndarray:
-        print("Someone needs to write this method! Generating {} with parameters:{}".format(base_filename,str(parameter_set)))
-
-    def get_dataset_filename(self,dataset:Dataset,type:str)->str:
-        return "{}/{}_{}".format(self.dataset_dir,self.name,type)
-
-    def get_wave_filename(self,index:int)->str:
-        return "{}/{}_{:05d}.wav".format(self.wave_file_dir,self.name,index)
-
-    def should_write_wave(self)->bool:
-        return True
-
-    # Assumes that the data is -1..1 floating point
-    def write_file(self,data : np.ndarray,filename:str):
-        int_data = (data * np.iinfo(np.int16).max).astype(int)
-        sample_rate = self.sample_rate
-        write_wav(filename, sample_rate, data)
-
-class Parameter:
-    def __init__(self,name: str, levels: list):
-        self.name=name
-        self.levels = levels
+    def to_sample(self,settings:List[ParamValue])->Sample:
+        print(str(settings))
+        return Sample(
+            [(p[0],p[1]) for p in settings], #Tuples of param name,value
+            np.array([p[2] for p in settings]).flatten() # One-HOT encoding
+        )
 
 
 if __name__ == "__main__":
-    g = Generator(name="test_generator",datset_dir="test_datasets",wave_file_dir="test_waves",
-        parameters=[
+    gen = SoundGenerator()
+    parameters=ParameterSet([
         Parameter("p1",[100,110,120,130,140]),
         Parameter("p2",[200,220,240,260,280])
     ])
-    g.run()
+    g = DatasetGenerator("test_generator",
+        "test_datasets/example",
+        "test_datasets/example",
+        parameters )
+    g.generate(sound_generator=gen,length=0.1,sample_rate=44100,method="random")

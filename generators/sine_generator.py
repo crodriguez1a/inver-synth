@@ -2,14 +2,14 @@ from generators.generator import Generator, Parameter
 import numpy as np
 import math
 
-class SineGenerator(Generator):
-    def do_sound_generation(self,parameter_set,base_filename)->np.ndarray:
+class SineGenerator(SoundGenerator):
+    def generate(self,parameters:dict,filename:str,length:float,sample_rate:int)->np.ndarray:
         print("Doing Sine!")
-        length = int(self.length * self.sample_rate)
-        data = np.zeros(length)
+        samples = int(length * sample_rate)
+        data = np.zeros(samples)
         params = dict(parameter_set)
         print("Params: " + str(params))
-        for i in range(length):
+        for i in range(samples):
             t = float(i) / self.sample_rate
             v = (math.sin(t*params['f1']*math.pi) + math.sin(t*params['f2']*math.pi))*0.5
             data[i] = v
