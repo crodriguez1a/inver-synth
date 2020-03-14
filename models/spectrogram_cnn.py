@@ -122,6 +122,13 @@ if __name__ == "__main__":
         print("Act : {}".format(y_val[i]))
         print("-" * 30)
 
+    num = x_val.shape[0]
+    correct = 0
+    for i in range(num):
+        if np.absolute( np.round(prediction[i]) - y_val[i] ).sum() < 0.1:
+            correct = correct + 1
+    print("Got {} out of {} ({}%)".format(correct,num, correct/num * 100 ))
+
 
     if os.getenv('EXPERIMENTATION', False):
         # Predict
