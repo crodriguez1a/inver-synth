@@ -63,7 +63,8 @@ class DatasetGenerator():
 
     def save_labels(self,dataset:List[Sample]):
         param = tuple(t.parameter_encoding for t in dataset)
-        param_data = np.expand_dims(np.vstack(param), axis=1)
+        #param_data = np.expand_dims(np.vstack(param), axis=1)
+        param_data = np.vstack(param)
         print("Param data: {}".format(param_data.shape))
         np.save(self.get_dataset_filename(dataset,"labels"),param_data)
 
@@ -165,4 +166,4 @@ if __name__ == "__main__":
         "test_datasets/example",
         "test_datasets/example",
         parameters )
-    g.generate(sound_generator=gen,length=0.1,sample_rate=44100,method="random")
+    g.generate(sound_generator=gen,length=1,sample_rate=16384,method="random",max=30)
