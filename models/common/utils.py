@@ -22,7 +22,7 @@ class Utils:
     def write_audio(path: str, audio: np.ndarray, sample_rate: int):
         if os.path.isfile(path):
             librosa.output.write_wav(path, audio, sample_rate)
-            print(f'Written successfully to {wav_out}')
+            print(f'Written successfully to {path}')
 
     @property
     def fingerprint(self) -> str:
