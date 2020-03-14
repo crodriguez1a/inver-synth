@@ -24,12 +24,13 @@ class Sample:
 # Dataset format: numpy.ndarray (num_points,1,num_samples)
 
 class DatasetGenerator():
-    def __init__(self,name: str, dataset_dir:str, wave_file_dir:str, parameters: list ):
+    def __init__(self,name: str, dataset_dir:str, wave_file_dir:str, parameters: list, normalise:bool=True ):
         self.name = name
         self.parameters = parameters
         self.dataset_dir = dataset_dir
         self.wave_file_dir = wave_file_dir
         self.index = 0
+        self.normalise = normalise
 
     def generate(self,sound_generator:SoundGenerator,length:float=0.1,sample_rate:int=44100,max:int=10,method:str='complete'):
         self.index = 0
@@ -43,10 +44,17 @@ class DatasetGenerator():
         for p in dataset:
             p.length = length
             p.sample_rate = sample_rate
-            print("Samplie: {}".format(p))
+        print("First sample: {}".format(dataset[0]))
+        print("First parameters: {}".format(dict(dataset[0].parameter_values)))
+        for p in dataset:
+            #print("Sample: {}".format(p))
             audio = sound_generator.generate(
                 dict(p.parameter_values),self.get_wave_filename(self.index),
                 p.length, p.sample_rate)
+            if self.normalise:
+                max = np.max(np.absolute(audio))
+                if max > 0:
+                    audio = audio / max
             p.audio = audio[:n_samps]
             if not sound_generator.creates_wave_file():
                 self.write_file(audio,self.get_wave_filename(self.index),sample_rate)
@@ -94,7 +102,6 @@ class Parameter:
 
     def sample(self)->ParamValue:
         index:int = random.choice(range(len(self.levels)))
-        print("Sampling {}".format(index))
         return self.get_value(index)
 
     def get_value(self,index:int)->ParamValue:
@@ -149,11 +156,11 @@ class ParameterSet:
         return return_list
 
     def to_sample(self,settings:List[ParamValue])->Sample:
-        print(str(settings))
-        return Sample(
-            [(p[0],p[1]) for p in settings], #Tuples of param name,value
-            np.array([p[2] for p in settings]).flatten() # One-HOT encoding
-        )
+        #print(str(settings))
+        oneHOT = np.hstack([p[2] for p in settings])
+        params = [(p[0],p[1]) for p in settings] #Tuples of param name,value
+        #print("OneHOT: {}".format(oneHOT))
+        return Sample(params, oneHOT )
 
 
 if __name__ == "__main__":
@@ -162,8 +169,8 @@ if __name__ == "__main__":
         Parameter("p1",[100,110,120,130,140]),
         Parameter("p2",[200,220,240,260,280])
     ])
-    g = DatasetGenerator("test_generator",
-        "test_datasets/example",
-        "test_datasets/example",
-        parameters )
+    g = DatasetGenerator("example_generator",
+        dataset_dir="test_datasets",
+        wave_file_dir="test_waves/example/",
+        parameters=parameters )
     g.generate(sound_generator=gen,length=1,sample_rate=16384,method="random",max=30)
