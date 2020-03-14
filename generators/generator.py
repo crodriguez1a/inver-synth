@@ -9,6 +9,17 @@ import random
 
 from generators.sound_generator import SoundGenerator
 
+"""
+A sample point - the parameter values, the oneHOT encoding and the audio
+"""
+@dataclass
+class Sample:
+    parameter_values: List[Tuple[str,float]]
+    parameter_encoding:List[List[float]]
+    length:float=0.1
+    sample_rate:int = 44100
+    audio:np.ndarray = np.zeros(10)
+
 
 # Dataset format: numpy.ndarray (num_points,1,num_samples)
 
@@ -40,18 +51,21 @@ class DatasetGenerator():
             if not sound_generator.creates_wave_file():
                 self.write_file(audio,self.get_wave_filename(self.index),sample_rate)
             self.index = self.index + 1
+        self.save_audio(dataset)
+        self.save_labels(dataset)
 
 
-    def save_datasets(self):
-        audio = tuple(t[2][:16384] for t in dataset)
+    def save_audio(self,dataset:List[Sample]):
+        audio = tuple(t.audio for t in dataset)
         audio_data = np.expand_dims(np.vstack(audio), axis=1)
         print("Audio data: {}".format(audio_data.shape))
-        np.save(self.get_dataset_filename(dataset,"audio"),audio_data)
+        np.save(self.get_dataset_filename(dataset,"input"),audio_data)
 
-        param = tuple(t[3] for t in dataset)
+    def save_labels(self,dataset:List[Sample]):
+        param = tuple(t.parameter_encoding for t in dataset)
         param_data = np.expand_dims(np.vstack(param), axis=1)
         print("Param data: {}".format(param_data.shape))
-        np.save(self.get_dataset_filename(dataset,"params"),audio_data)
+        np.save(self.get_dataset_filename(dataset,"labels"),param_data)
 
 
     def get_dataset_filename(self,dataset,type:str)->str:
@@ -68,13 +82,6 @@ class DatasetGenerator():
 
 
 # Model architectures
-@dataclass
-class Sample:
-    parameter_values: List[Tuple[str,float]]
-    parameter_encoding:List[List[float]]
-    length:float=0.1
-    sample_rate:int = 44100
-    audio:np.ndarray = np.zeros(10)
 
 class Parameter:
     def __init__(self,name: str, levels: list):
