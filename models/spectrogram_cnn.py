@@ -114,6 +114,15 @@ if __name__ == "__main__":
                              x_val, y_val,
                              epochs=epochs,)
 
+    prediction: np.ndarray = model.predict(x_val)
+    print("Prediction Shape: {}".format(prediction.shape))
+    for i in range(min(x_val.shape[0],30)):
+        print("Pred: {}".format(np.round(prediction[i],decimals=2)))
+        print("PRnd: {}".format(np.round(prediction[i])))
+        print("Act : {}".format(y_val[i]))
+        print("-" * 30)
+
+
     if os.getenv('EXPERIMENTATION', False):
         # Predict
         x_test: np.ndarray = data_format_audio(y_audio, data_format)
