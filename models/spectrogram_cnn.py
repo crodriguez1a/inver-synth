@@ -61,6 +61,8 @@ def assemble_model(src: np.ndarray,
                                 activation=arch_layer.activation,
                                 data_format=data_format,)(x)
 
+    # Flatten down to a single dimension
+    x = keras.layers.Flatten()(x)
     # @paper: sigmoid activations with binary cross entropy loss
     # @paper: FC-512
     x = keras.layers.Dense(512)(x)
