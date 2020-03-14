@@ -36,6 +36,7 @@ def input_raw_audio(path: str, sr: int = 16384, duration: float = 1.) -> tuple:
 
 
 def assemble_model(src: np.ndarray,
+                    n_outputs:int,
                    arch_layers: list,
                    n_dft: int = 128,
                    n_hop: int = 64,
@@ -69,43 +70,39 @@ def assemble_model(src: np.ndarray,
 
     # @paper: FC-368(sigmoid)
     outputs = keras.layers.Dense(
-        368, activation='sigmoid', name='predictions')(x)
+        n_outputs, activation='sigmoid', name='predictions')(x)
 
     return keras.Model(inputs=inputs, outputs=outputs)
 
-
 if __name__ == "__main__":
-    # Load audio sample
-    input_audio_path: str = os.getenv('AUDIO_WAV_INPUT')
-    # Define audio sample max duration
-    duration: float = 1
-    # Extract raw audio
-    y_audio, sample_rate = input_raw_audio(input_audio_path, duration=duration)
+    # Load in training data
+    dataset: str = os.getcwd() + os.getenv('TRAINING_SET')
+    x_train: np.ndarray = np.load(dataset)
+    n_samples: int = x_train.shape[2]
+    n_examples: int = x_train.shape[0]
+    print("Length: {}, number of examples: {}".format(n_samples,n_examples))
+
+    # Load in label data
+    labels: str = os.getcwd() + os.getenv('LABELS')
+    y_train: np.ndarray = np.load(labels)
+    n_labels: int = y_train.shape[1]
+    n_label_examples: int = y_train.shape[0]
+    print("Label Length: {}, number of examples: {}".format(n_labels,n_label_examples))
 
     # set keras image_data_format
     data_format: str = os.getenv('IMAGE_DATA_FORMAT', 'channels_first')
     keras.backend.set_image_data_format(data_format)
 
-    # input should be a 2D array, `(audio_channel, audio_length)`.
-    input_2d: np.ndarray = y_audio[np.newaxis, :]
-
     arch_layers = layers_map.get(os.getenv('ARCHITECTURE', 'C1'))
-    model: keras.Model = assemble_model(input_2d,
+    model: keras.Model = assemble_model(np.zeros([1,n_samples]),
+                                        n_outputs=n_labels,
                                         arch_layers=arch_layers,
                                         data_format=data_format)
-
-    # n-synth bass dataset https://magenta.tensorflow.org/datasets/nsynth#files
-    dataset: str = os.getcwd() + os.getenv('TRAINING_SET')
-    x_train: np.ndarray = np.load(dataset)
-    n_samples: int = x_train.shape[0]
-
-    # generate labels arbitrarily
-    y_train: np.ndarray = np.random.uniform(
-        size=(n_samples,) + model.output_shape[1:])
 
     # Reserve samples for validation
     split: float = .2
     x_val, y_val, x_train, y_train = train_val_split(x_train, y_train, split)
+    print("Shapes: x_val={}, y_val={}, x_train={}, y_train={}".format(x_val.shape,y_val.shape,x_train.shape,y_train.shape))
 
     # Summarize and compile the model
     summarize_compile(model)
