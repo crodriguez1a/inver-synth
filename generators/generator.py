@@ -18,19 +18,20 @@ class Sample:
     parameter_encoding:List[List[float]]
     length:float=0.1
     sample_rate:int = 44100
-    audio:np.ndarray = np.zeros(10)
+    audio:np.ndarray = np.zeros(1)
 
 
 # Dataset format: numpy.ndarray (num_points,1,num_samples)
 
 class DatasetGenerator():
-    def __init__(self,name: str, dataset_dir:str, wave_file_dir:str, parameters: list, normalise:bool=True ):
+    def __init__(self,name: str, dataset_dir:str, wave_file_dir:str, parameters: list, normalise:bool=True, fixed_parameters:dict={} ):
         self.name = name
         self.parameters = parameters
         self.dataset_dir = dataset_dir
         self.wave_file_dir = wave_file_dir
         self.index = 0
         self.normalise = normalise
+        self.fixed_parameters=fixed_parameters
 
     def generate(self,sound_generator:SoundGenerator,length:float=0.1,sample_rate:int=44100,max:int=10,method:str='complete'):
         self.index = 0
@@ -48,8 +49,10 @@ class DatasetGenerator():
         print("First parameters: {}".format(dict(dataset[0].parameter_values)))
         for p in dataset:
             #print("Sample: {}".format(p))
+            params = self.fixed_parameters.copy()
+            params.update(dict(p.parameter_values))
             audio = sound_generator.generate(
-                dict(p.parameter_values),self.get_wave_filename(self.index),
+                params,self.get_wave_filename(self.index),
                 p.length, p.sample_rate)
             if self.normalise:
                 max = np.max(np.absolute(audio))
