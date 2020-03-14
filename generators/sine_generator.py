@@ -8,7 +8,7 @@ class SineGenerator(SoundGenerator):
         samples = int(length * sample_rate)
         data = np.zeros(samples)
         params = dict(parameters)
-        #print("Sine Params: " + str(params))
+        print("Sine Params: " + str(params))
         for i in range(samples):
             t = float(i) / sample_rate
             v = (
@@ -23,14 +23,19 @@ class SineGenerator(SoundGenerator):
 if __name__ == "__main__":
     gen = SineGenerator()
     parameters=ParameterSet([
-        Parameter("f1",[100,150,200]),
-        Parameter("a1",[0.5, 1.0]),
-        Parameter("f2",[400,800,1200]),
-        Parameter("a2",[0.5, 1.0])
+        Parameter("f1",[100,200,400]),
+        Parameter("a1",[0.5,0.7,1.0]),
+        Parameter("f2",[800,1200,1600]),
+        Parameter("a2",[0.5,0.7,1.0])
     ])
+    fixed_parameters = {
+        "a1":1.0,
+        "a2":1.0
+    }
     g = DatasetGenerator("sine_generator",
         dataset_dir="test_datasets",
         wave_file_dir="test_waves/sine/",
-        parameters=parameters
+        parameters=parameters,
+        fixed_parameters=fixed_parameters
     )
-    g.generate(sound_generator=gen,length=1,sample_rate=16384,method="random",max=300)
+    g.generate(sound_generator=gen,length=1,sample_rate=16384,method="random",max=100)
