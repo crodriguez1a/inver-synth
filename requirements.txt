@@ -10,8 +10,8 @@ chardet==3.0.4
 decorator==4.4.2
 gast==0.2.2
 google-auth-oauthlib==0.4.1
-google-auth==1.11.2
-google-pasta==0.1.8
+google-auth==1.11.3
+google-pasta==0.2.0
 grpcio==1.27.2
 h5py==2.10.0
 idna==2.9
