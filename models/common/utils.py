@@ -19,8 +19,8 @@ class Utils:
         return librosa.griffinlim(S)
 
     @staticmethod
-    def write_audio(path: str, audio: np.ndarray, sample_rate: int):
-        if os.path.isfile(path):
+    def write_audio(path: str, audio: np.ndarray, sample_rate: int = 44100):
+        if path and os.path.isfile(path):
             librosa.output.write_wav(path, audio, sample_rate)
             print(f'Written successfully to {path}')
 
@@ -29,6 +29,9 @@ class Utils:
         return uuid.uuid4()
 
     def h5_save(self, model, save_path: str):
+        if not save_path:
+            return
+
         try:
             base_path: str = f'{os.getcwd()}/{save_path}'
 
@@ -43,6 +46,11 @@ class Utils:
 
         except Exception as e:
             print(f"There was a problem saving the model: {e}")
+
+    @staticmethod
+    def dummy_labels(size) -> np.ndarray:
+        labels = np.random.uniform(size=size)
+        return labels
 
 
 # export initialized

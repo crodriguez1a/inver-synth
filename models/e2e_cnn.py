@@ -6,7 +6,7 @@ import keras  # TODO: update to tf.keras when kapre goes to tf2.0
 # https://github.com/keunwoochoi/kapre/pull/58/commits/a3268110471466e4799621d0ae39bd05d84ee275
 # from kapre.time_frequency import Spectrogram
 
-from models.app import summarize_compile, fit, predict, data_format_audio, train_val_split
+from models.app import summarize_compile, fit, data_format_audio, train_val_split
 from models.common.utils import utils
 from models.common.architectures import cE2E_1d_layers, cE2E_2d_layers
 
@@ -74,8 +74,10 @@ def assemble_model(src: np.ndarray,
 
     # @paper: sigmoid activations with binary cross entropy loss
 
-    # @paper: FC-512
+    # Flatten down to a single dimension
     x = keras.layers.Flatten()(x)
+
+    # @paper: FC-512
     x = keras.layers.Dense(512)(x)
 
     # @paper: FC-368(sigmoid)
@@ -107,10 +109,10 @@ if __name__ == "__main__":
 
     dataset: str = os.getcwd() + os.getenv('TRAINING_SET')
     x_train: np.ndarray = np.load(dataset)
-    n_samples: int = x_train.shape[0]
 
-    y_train: np.ndarray = np.random.uniform(
-        size=(n_samples,) + model.output_shape[1:])
+    # TODO: command line feedback
+    labels: str = os.getcwd() + os.getenv('LABELS')
+    y_train: np.ndarray = np.load(labels)
 
     # Reserve samples for validation
     split: float = .2
@@ -126,16 +128,13 @@ if __name__ == "__main__":
                              x_val, y_val,
                              epochs=epochs,)
 
-    if os.getenv('EXPERIMENTATION', False):
-        # `channels_first` = 1 channel, 1 sample of a signal with length n
-        x_test: np.ndarray = data_format_audio(y_audio, data_format)
-        result: np.ndarray = predict(model, x_test, data_format)
+    # TODO: add predict and eval
 
-        # Save model
-        save_path: str = os.getenv('SAVED_MODELS_PATH')
-        utils.h5_save(model, save_path)
+    # Save model
+    save_path: str = os.getenv('SAVED_MODELS_PATH')
+    utils.h5_save(model, save_path)
 
-        # Write audio
-        new_audio: np.ndarray = result
-        wav_out: str = os.getenv('AUDIO_WAV_OUTPUT')
-        utils.write_audio(wav_out, new_audio, sample_rate)
+    # Write audio
+    new_audio: np.ndarray = result
+    wav_out: str = os.getenv('AUDIO_WAV_OUTPUT')
+    utils.write_audio(wav_out, new_audio, sample_rate)

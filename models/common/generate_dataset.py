@@ -1,3 +1,5 @@
+# TODO: move or deprecate in favor of Dave's generators module
+
 import os
 import numpy as np
 

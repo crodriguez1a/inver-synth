@@ -7,26 +7,44 @@
 
 *NOTE: This implementation is a work in progress. Contributions are welcome.*
 
-### Generating a Training Set from Raw Audio
+## Generating a Training Set of Simple Sinusoidal Synthesis
+
+Create the following output directories:
 
 ```
-python -m models.common.generate_dataset -w /path/to/wavs -s /path/to/data
+test_waves
+└── sine
+test_datasets
 ```
 
-This utility to reads a specified directory of `.wav` files and writes the output to a numpy array
-  with the shape `(n_samples, audio_channel, audio_length)`
+Then run:
+```
+python -m generators.sine_generator
+```
+
+This will generate a dataset of simple sinusoidal synthesis, which has:
+
+- training data in `test_datasets/sine_generator_input.npy`
+- labels in `/test_datasets/sine_generator_labels.npy`
+- wave files in `test_waves/sine/`
+
+Then assign environment variables to point to the output:
+
+```
+# .env
+TRAINING_SET=/test_datasets/sine_generator_input.npy
+LABELS=/test_datasets/sine_generator_labels.npy
+```
 
 ### Experimenting with the E2E & Spectrogram models
 
-First, assign values to following environment variables:
+First, assign values to following environment variables in a `.env`:
 
 - `AUDIO_WAV_INPUT` - the input sound to attempt to match
 
 - `TRAINING_SET` - a path to training data
 
 - `EPOCHS` - number of training epochs (default is 100 as prescribed in paper)
-
-- `EXPERIMENTATION` - when set to to `True`, will execute a predict function using the input sound
 
 - `SAVED_MODELS_PATH` - if set, will save weights to `h5` and architecture to `JSON`
 

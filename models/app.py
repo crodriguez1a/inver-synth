@@ -51,7 +51,8 @@ def summarize_compile(model: keras.Model):
         # TODO: keras.metrics.TopKCategoricalAccuracy(),
         # https://github.com/tensorflow/tensorflow/issues/9243
         # @paper: 3) Mean Absolute Error based evaluation
-        keras.metrics.MeanAbsoluteError(), ])
+        keras.metrics.MeanAbsoluteError(),
+        keras.metrics.CategoricalAccuracy(),])
 
 
 def fit(model: keras.Model,
@@ -81,22 +82,23 @@ def fit(model: keras.Model,
     return model
 
 
-def predict(model: keras.Model,
-            x: np.ndarray,
-            data_format: str,
-            use_multiprocessing: bool = True,
-            verbose: int = 1,) -> np.ndarray:
+def _prediction_shape(prediction, x, y):
+    print("Prediction Shape: {}".format(prediction.shape))
+    for i in range(min(x.shape[0],30)):
+        print("Pred: {}".format(np.round(prediction[i],decimals=2)))
+        print("PRnd: {}".format(np.round(prediction[i])))
+        print("Act : {}".format(y[i]))
+        print("-" * 30)
 
-    result: np.ndarray = model.predict(x=x,
-                                       verbose=verbose,
-                                       use_multiprocessing=use_multiprocessing)
+def evaluate(prediction: np.ndarray, x: np.ndarray, y: np.ndarray):
+    _prediction_shape(prediction, x, y)
 
-    # TODO: rearrange for `channels_first/last`
-    # is_channels_first: bool = data_format == 'channels_first'
-    # result = result[0, 0] if is_channels_first else result[0, :, :, 0]
-    # result = result[0, 0]
-
-    return result
+    num: int = x.shape[0]
+    correct: int = 0
+    for i in range(num):
+        if np.absolute( np.round(prediction[i]) - y[i] ).sum() < 0.1:
+            correct = correct + 1
+    print("Got {} out of {} ({}%)".format(correct,num, correct/num * 100 ))
 
 
 def data_format_audio(audio: np.ndarray, data_format: str) -> np.ndarray:

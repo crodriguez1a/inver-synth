@@ -6,7 +6,7 @@ import keras  # TODO: update to tf.keras when kapre goes to tf2.0
 # https://github.com/keunwoochoi/kapre/pull/58/commits/a3268110471466e4799621d0ae39bd05d84ee275
 from kapre.time_frequency import Spectrogram
 
-from models.app import summarize_compile, fit, predict, data_format_audio, train_val_split
+from models.app import summarize_compile, fit, data_format_audio, train_val_split, evaluate
 from models.common.utils import utils
 from models.common.architectures import layers_map
 
@@ -65,7 +65,6 @@ def assemble_model(src: np.ndarray,
     x = keras.layers.Flatten()(x)
     # @paper: sigmoid activations with binary cross entropy loss
     # @paper: FC-512
-    x = keras.layers.Flatten()(x)
     x = keras.layers.Dense(512)(x)
 
     # @paper: FC-368(sigmoid)
@@ -94,6 +93,8 @@ if __name__ == "__main__":
     keras.backend.set_image_data_format(data_format)
 
     arch_layers = layers_map.get(os.getenv('ARCHITECTURE', 'C1'))
+
+
     model: keras.Model = assemble_model(np.zeros([1,n_samples]),
                                         n_outputs=n_labels,
                                         arch_layers=arch_layers,
@@ -114,32 +115,6 @@ if __name__ == "__main__":
                              x_val, y_val,
                              epochs=epochs,)
 
+    # evaluate prediction on validation set
     prediction: np.ndarray = model.predict(x_val)
-    print("Prediction Shape: {}".format(prediction.shape))
-    for i in range(min(x_val.shape[0],30)):
-        print("Pred: {}".format(np.round(prediction[i],decimals=2)))
-        print("PRnd: {}".format(np.round(prediction[i])))
-        print("Act : {}".format(y_val[i]))
-        print("-" * 30)
-
-    num = x_val.shape[0]
-    correct = 0
-    for i in range(num):
-        if np.absolute( np.round(prediction[i]) - y_val[i] ).sum() < 0.1:
-            correct = correct + 1
-    print("Got {} out of {} ({}%)".format(correct,num, correct/num * 100 ))
-
-
-    if os.getenv('EXPERIMENTATION', False):
-        # Predict
-        x_test: np.ndarray = data_format_audio(y_audio, data_format)
-        result: np.ndarray = predict(model, x_test, data_format)
-
-        # Save model
-        save_path: str = os.getenv('SAVED_MODELS_PATH')
-        utils.h5_save(model, save_path)
-
-        # Write audio
-        new_audio: np.ndarray = result
-        wav_out: str = os.getenv('AUDIO_WAV_OUTPUT')
-        utils.write_audio(wav_out, new_audio, sample_rate)
+    evaluate(prediction, x_val, y_val)
