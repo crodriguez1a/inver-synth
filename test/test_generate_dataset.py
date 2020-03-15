@@ -7,11 +7,11 @@ class TestGenerateDataset:
         base_path = os.getcwd() + f'/audio/samples/'
         paths = collect_paths(base_path)
 
-        assert len(paths) == 3
+        assert len(paths) == 4
 
     def test_raw_dataset(self):
         base_path = os.getcwd() + f'/audio/samples/'
         paths = collect_paths(base_path)
         dataset = raw_dataset(paths)
 
-        assert dataset.shape == (3, 1, 16384)
+        assert dataset.shape == (4, 1, 16384)

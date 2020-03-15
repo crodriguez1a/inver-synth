@@ -6,7 +6,7 @@ import keras  # TODO: update to tf.keras when kapre goes to tf2.0
 # https://github.com/keunwoochoi/kapre/pull/58/commits/a3268110471466e4799621d0ae39bd05d84ee275
 # from kapre.time_frequency import Spectrogram
 
-from models.app import summarize_compile, fit, data_format_audio, train_val_split
+from models.app import summarize_compile, fit, data_format_audio, train_val_split, evaluate
 from models.common.utils import utils
 from models.common.architectures import cE2E_1d_layers, cE2E_2d_layers
 
@@ -38,6 +38,7 @@ def input_raw_audio(path: str, sr: int = 16384, duration: float = 1.) -> tuple:
 
 
 def assemble_model(src: np.ndarray,
+                   n_outputs: int,
                    c1d_layers: list,
                    c2d_layers: list,
                    n_dft: int = 128,
@@ -82,7 +83,7 @@ def assemble_model(src: np.ndarray,
 
     # @paper: FC-368(sigmoid)
     outputs = keras.layers.Dense(
-        368, activation='sigmoid', name='predictions')(x)
+        n_outputs, activation='sigmoid', name='predictions')(x)
 
     return keras.Model(inputs=inputs, outputs=outputs)
 
@@ -102,17 +103,26 @@ if __name__ == "__main__":
     data_format: str = 'channels_first'
     keras.backend.set_image_data_format(data_format)
 
-    model: keras.Model = assemble_model(input_2d,
-                                        cE2E_1d_layers,
-                                        cE2E_2d_layers,
-                                        data_format=data_format,)
 
     dataset: str = os.getcwd() + os.getenv('TRAINING_SET')
     x_train: np.ndarray = np.load(dataset)
+    n_samples: int = x_train.shape[2]
+    n_examples: int = x_train.shape[0]
+    print("Length: {}, number of examples: {}".format(n_samples,n_examples))
 
-    # TODO: command line feedback
+    # Load in label data
     labels: str = os.getcwd() + os.getenv('LABELS')
     y_train: np.ndarray = np.load(labels)
+    n_labels: int = y_train.shape[1]
+    n_label_examples: int = y_train.shape[0]
+    print("Label Length: {}, number of examples: {}".format(n_labels,n_label_examples))
+
+    model: keras.Model = assemble_model(input_2d,
+                                        # np.zeros([1,n_samples]),
+                                        n_labels,
+                                        cE2E_1d_layers,
+                                        cE2E_2d_layers,
+                                        data_format=data_format,)
 
     # Reserve samples for validation
     split: float = .2
@@ -128,13 +138,10 @@ if __name__ == "__main__":
                              x_val, y_val,
                              epochs=epochs,)
 
-    # TODO: add predict and eval
+    # evaluate prediction on validation set
+    prediction: np.ndarray = model.predict(x_val)
+    evaluate(prediction, x_val, y_val)
 
     # Save model
-    save_path: str = os.getenv('SAVED_MODELS_PATH')
+    save_path: str = os.getenv('SAVED_MODELS_PATH', '')
     utils.h5_save(model, save_path)
-
-    # Write audio
-    new_audio: np.ndarray = result
-    wav_out: str = os.getenv('AUDIO_WAV_OUTPUT')
-    utils.write_audio(wav_out, new_audio, sample_rate)

@@ -35,7 +35,7 @@ def input_raw_audio(path: str, sr: int = 16384, duration: float = 1.) -> tuple:
 
 
 def assemble_model(src: np.ndarray,
-                    n_outputs:int,
+                   n_outputs:int,
                    arch_layers: list,
                    n_dft: int = 128,
                    n_hop: int = 64,
@@ -63,6 +63,7 @@ def assemble_model(src: np.ndarray,
 
     # Flatten down to a single dimension
     x = keras.layers.Flatten()(x)
+
     # @paper: sigmoid activations with binary cross entropy loss
     # @paper: FC-512
     x = keras.layers.Dense(512)(x)
