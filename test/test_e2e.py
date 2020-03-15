@@ -2,6 +2,7 @@ import numpy as np
 from models.e2e_cnn import assemble_model
 from models.common.architectures import cE2E_1d_layers, cE2E_2d_layers
 
+
 class TestModel_E2E_CNN:
     def test_output_shape(self):
         input_2d = np.load('test/sample_input.npy')

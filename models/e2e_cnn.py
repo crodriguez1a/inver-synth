@@ -1,7 +1,6 @@
 import os
 
 import numpy as np
-import librosa
 
 import keras  # TODO: update to tf.keras when kapre goes to tf2.0
 # https://github.com/keunwoochoi/kapre/pull/58/commits/a3268110471466e4799621d0ae39bd05d84ee275
