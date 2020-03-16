@@ -61,6 +61,8 @@ class DatasetCreator():
             p.audio = audio[:n_samps]
             if not sound_generator.creates_wave_file():
                 self.write_file(audio,self.get_wave_filename(self.index),sample_rate)
+            if self.index % 1000 == 0:
+                print("Generating example {}".format(self.index))
             self.index = self.index + 1
         self.save_audio(dataset)
         self.save_labels(dataset)

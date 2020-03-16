@@ -77,6 +77,8 @@ class ParameterSet:
         for i in range(sample_size):
             params = [p.sample() for p in self.parameters]
             dataset.append(Sample(params))
+            if i % 1000 == 0:
+                print("Sampling iteration: {}".format(i))
         return dataset
 
 
