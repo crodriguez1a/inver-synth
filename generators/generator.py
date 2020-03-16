@@ -6,11 +6,27 @@ from typing import Dict, Tuple, Sequence, List
 import random
 
 from generators.parameters import *
-from generators.sound_generator import SoundGenerator
+
+"""
+This is a base class to derive different kinds of sound generator from (e.g.
+custom synthesis, VST plugins)
+"""
+
+class SoundGenerator:
+    def generate(self,parameters:dict,filename:str,length:float,sample_rate:int)->np.ndarray:
+        print("Someone needs to write this method! Generating {} with parameters:{}".format(filename,str(parameters)))
+        return np.zeros(int(length*sample_rate))
+
+    def creates_wave_file(self)->bool:
+        return False
 
 
+"""
+This class runs through a parameter set, gets it to generate parameter settings
+then runs the sound generator over it.
+"""
 
-class DatasetGenerator():
+class DatasetCreator():
     def __init__(self,name: str, dataset_dir:str, wave_file_dir:str, parameters: ParameterSet, normalise:bool=True ):
         self.name = name
         self.parameters = parameters
@@ -88,7 +104,7 @@ if __name__ == "__main__":
         Parameter("p1",[100,110,120,130,140]),
         Parameter("p2",[200,220,240,260,280])
     ])
-    g = DatasetGenerator("example_generator",
+    g = DatasetCreator("example_generator",
         dataset_dir="test_datasets",
         wave_file_dir="test_waves/example/",
         parameters=parameters )

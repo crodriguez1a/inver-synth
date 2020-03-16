@@ -34,9 +34,9 @@ if __name__ == "__main__":
             "a2":1.0
         }
     )
-    g = DatasetGenerator("sine_generator",
+    g = DatasetCreator("sine_generator",
         dataset_dir="test_datasets",
         wave_file_dir="test_waves/sine/",
         parameters=parameters
     )
-    g.generate(sound_generator=gen,length=1,sample_rate=16384,method="random",max=100)
+    g.generate(sound_generator=gen,length=1,sample_rate=16384,method="random",max=10)
