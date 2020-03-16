@@ -11,26 +11,32 @@ from pickle import dump
 from generators.sound_generator import SoundGenerator
 
 """
-A sample point - the parameter values, the oneHOT encoding and the audio
+A setting for a parameter, with its oneHOT encoding
 """
-@dataclass
-class Sample:
-    parameter_values: List[Tuple[str,float]]
-    parameter_encoding:List[List[float]]
-    length:float=0.1
-    sample_rate:int = 44100
-    audio:np.ndarray = np.zeros(1)
-
 @dataclass
 class ParamValue:
     name:str
     value:float
     encoding:List[float]
 
-# Dataset format: numpy.ndarray (num_points,1,num_samples)
 
+"""
+A sample point - the parameter values, the oneHOT encoding and the audio
+"""
+@dataclass
+class Sample:
+    #parameter_values: List[Tuple[str,float]]
+    #parameter_encoding:List[List[float]]
+    parameters : List[ParamValue]
+    length:float=0.1
+    sample_rate:int = 44100
+    audio:np.ndarray = np.zeros(1)
 
-# Model architectures
+    def value_list(self)->List[Tuple[str,float]]:
+        return [(p.name,p.value) for p in self.parameters]
+
+    def encode(self)->List[float]:
+        return np.hstack([p.encoding for p in self.parameters])
 
 class Parameter:
     def __init__(self,name: str, levels: list):
@@ -74,7 +80,7 @@ class ParameterSet:
         dataset = []
         for i in range(sample_size):
             params = [p.sample() for p in self.parameters]
-            dataset.append(self.to_sample(params))
+            dataset.append(Sample(params))
         return dataset
 
 
@@ -95,16 +101,9 @@ class ParameterSet:
                 self.recursively_generate_all(remaining,ps,return_list)
         return return_list
 
-    def to_sample(self,settings:List[ParamValue])->Sample:
-        #print(str(settings))
-        oneHOT = np.hstack([p.encoding for p in settings])
-        params = [(p.name,p.value) for p in settings] #Tuples of param name,value
-        #print("OneHOT: {}".format(oneHOT))
-        return Sample(params, oneHOT )
-
     def to_settings(self,p:Sample):
         params = self.fixed_parameters.copy()
-        params.update(dict(p.parameter_values))
+        params.update(dict(p.value_list()))
         return params
 
     def decode(self,output:List[float])->List[ParamValue]:
@@ -138,7 +137,7 @@ class DatasetGenerator():
             p.length = length
             p.sample_rate = sample_rate
         print("First sample: {}".format(dataset[0]))
-        print("First parameters: {}".format(dict(dataset[0].parameter_values)))
+        print("First parameters: {}".format(dict(dataset[0].value_list())))
         for p in dataset:
             params = self.parameters.to_settings(p)
             audio = sound_generator.generate(
@@ -164,7 +163,7 @@ class DatasetGenerator():
         np.save(self.get_dataset_filename(dataset,"input"),audio_data)
 
     def save_labels(self,dataset:List[Sample]):
-        param = tuple(t.parameter_encoding for t in dataset)
+        param = tuple(t.encode() for t in dataset)
         #param_data = np.expand_dims(np.vstack(param), axis=1)
         param_data = np.vstack(param)
         print("Param data: {}".format(param_data.shape))
