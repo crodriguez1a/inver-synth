@@ -97,7 +97,6 @@ if __name__ == "__main__":
     with open(param_file,'rb') as f:
         parameters : ParameterSet = load(f)
 
-
     # set keras image_data_format
     data_format: str = os.getenv('IMAGE_DATA_FORMAT', 'channels_first')
     keras.backend.set_image_data_format(data_format)

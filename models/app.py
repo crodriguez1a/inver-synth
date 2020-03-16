@@ -85,7 +85,10 @@ def fit(model: keras.Model,
     return model
 
 
-def _prediction_shape(prediction, x, y,params):
+def _prediction_shape(prediction: np.ndarray,
+                      x: np.ndarray,
+                      y: np.ndarray,
+                      params: ParameterSet,):
     print("Prediction Shape: {}".format(prediction.shape))
     for i in range(min(x.shape[0],30)):
         print("Pred: {}".format(np.round(prediction[i],decimals=2)))
@@ -107,7 +110,11 @@ def _prediction_shape(prediction, x, y,params):
         print(pred_s)
         print("-" * 30)
 
-def evaluate(prediction: np.ndarray, x: np.ndarray, y: np.ndarray, params):
+def evaluate(prediction: np.ndarray,
+             x: np.ndarray,
+             y: np.ndarray,
+             params: ParameterSet,):
+             
     _prediction_shape(prediction, x, y, params)
 
     num: int = x.shape[0]

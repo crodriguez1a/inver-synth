@@ -25,8 +25,9 @@ python -m generators.sine_generator
 This will generate a dataset of simple sinusoidal synthesis, which has:
 
 - training data in `test_datasets/sine_generator_input.npy`
-- labels in `/test_datasets/sine_generator_labels.npy`
+- labels in `test_datasets/sine_generator_labels.npy`
 - wave files in `test_waves/sine/`
+- parameters in `test_datasets/sine_generator_params`
 
 Then assign environment variables to point to the output:
 
@@ -34,6 +35,7 @@ Then assign environment variables to point to the output:
 # .env
 TRAINING_SET=/test_datasets/sine_generator_input.npy
 LABELS=/test_datasets/sine_generator_labels.npy
+PARAMETERS=/test_datasets/sine_generator_params
 ```
 
 ### Experimenting with the E2E & Spectrogram models

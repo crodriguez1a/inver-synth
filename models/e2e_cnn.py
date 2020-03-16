@@ -10,6 +10,9 @@ from models.app import summarize_compile, fit, data_format_audio, train_val_spli
 from models.common.utils import utils
 from models.common.architectures import cE2E_1d_layers, cE2E_2d_layers
 
+from generators.generator import ParameterSet
+from pickle import load
+
 """
 End-to-End learning. A CNN predicts the synthesizer
 parameter configuration directly from the raw audio.
@@ -117,6 +120,11 @@ if __name__ == "__main__":
     n_label_examples: int = y_train.shape[0]
     print("Label Length: {}, number of examples: {}".format(n_labels,n_label_examples))
 
+    # Parameter data - needed for decoding!
+    param_file: str = os.getcwd() + os.getenv('PARAMETERS')
+    with open(param_file,'rb') as f:
+        parameters : ParameterSet = load(f)
+
     model: keras.Model = assemble_model(input_2d,
                                         # np.zeros([1,n_samples]),
                                         n_labels,
@@ -140,7 +148,7 @@ if __name__ == "__main__":
 
     # evaluate prediction on validation set
     prediction: np.ndarray = model.predict(x_val)
-    evaluate(prediction, x_val, y_val)
+    evaluate(prediction, x_val, y_val, parameters)
 
     # Save model
     save_path: str = os.getenv('SAVED_MODELS_PATH', '')
