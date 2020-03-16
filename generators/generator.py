@@ -115,16 +115,15 @@ class Parameter:
             #One HOT encoding
             to_categorical(index,num_classes=len(self.levels)))
 
-    def decode(self,one_hot:List[float])->float:
-        d2 = list(to_categorical(one_hot).astype(int)[1])
-        ind = d2.index(1)
-        return self.levels[ind]
+    def decode(self,one_hot:List[float])->ParamValue:
+        ind = np.array(one_hot).argmax()
+        return self.get_value(ind)
 
-    def from_output(self,current_output:List[float])->Tuple[float,List[float]]:
+    def from_output(self,current_output:List[float])->Tuple[ParamVal,List[float]]:
         param_data = current_output[:len(self.levels)]
-        remainder = current_output[len(self.levels):]
+        remaining = current_output[len(self.levels):]
         my_val = self.decode(param_data)
-        return (my_val,remainder)
+        return (my_val,remaining)
 
 
 
@@ -165,6 +164,14 @@ class ParameterSet:
         #print("OneHOT: {}".format(oneHOT))
         return Sample(params, oneHOT )
 
+    def decode(self,output:List[float])->List[ParamValue]:
+        values = []
+        for p in self.parameters
+            v,output = p.from_output(output)
+            values.append(v)
+        if len(output) > 0:
+            print("Leftover output!: {}".format(output))
+        return values
 
 if __name__ == "__main__":
     gen = SoundGenerator()
