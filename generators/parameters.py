@@ -1,7 +1,5 @@
-
 import numpy as np
 from typing import Dict, Tuple, Sequence, List
-from keras.utils import to_categorical
 from dataclasses import dataclass
 import random
 from pickle import dump
@@ -47,12 +45,14 @@ class Parameter:
         return self.get_value(index)
 
     def get_value(self,index:int)->ParamValue:
+        encoding = np.zeros(len(self.levels)).astype(float)
+        encoding[index] = 1.0
         return ParamValue(
             name=self.name,
             #Actual value
             value = self.levels[index],
             #One HOT encoding
-            encoding = to_categorical(index,num_classes=len(self.levels)))
+            encoding = encoding )
 
     def decode(self,one_hot:List[float])->ParamValue:
         ind = np.array(one_hot).argmax()
