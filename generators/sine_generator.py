@@ -3,7 +3,7 @@ import numpy as np
 import math
 
 class SineGenerator(SoundGenerator):
-    def generate(self,parameters:dict,filename:str,length:float,sample_rate:int)->np.ndarray:
+    def generate(self,parameters:dict,filename:str,length:float,sample_rate:int,extra:dict={})->np.ndarray:
         #print("Doing Sine!")
         samples = int(length * sample_rate)
         data = np.zeros(samples)

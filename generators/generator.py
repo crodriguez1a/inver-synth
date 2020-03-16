@@ -35,7 +35,7 @@ class DatasetCreator():
         self.index = 0
         self.normalise = normalise
 
-    def generate(self,sound_generator:SoundGenerator,length:float=0.1,sample_rate:int=44100,max:int=10,method:str='complete'):
+    def generate(self,sound_generator:SoundGenerator,length:float=0.1,sample_rate:int=44100,max:int=10,method:str='complete',extra:dict={}):
         self.index = 0
         dataset:List[Sample] = []
         if method == "complete":
@@ -53,7 +53,7 @@ class DatasetCreator():
             params = self.parameters.to_settings(p)
             audio = sound_generator.generate(
                 params,self.get_wave_filename(self.index),
-                p.length, p.sample_rate)
+                p.length, p.sample_rate, extra)
             if self.normalise:
                 max = np.max(np.absolute(audio))
                 if max > 0:
