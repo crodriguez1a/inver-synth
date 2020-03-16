@@ -4,8 +4,9 @@ import numpy as np
 from typing import Dict, Tuple, Sequence, List
 from keras.utils import to_categorical
 from dataclasses import dataclass
-ParamValue = Tuple[str,float,List[float]]
+#ParamValue = Tuple[str,float,List[float]]
 import random
+from pickle import dump
 
 from generators.sound_generator import SoundGenerator
 
@@ -20,6 +21,11 @@ class Sample:
     sample_rate:int = 44100
     audio:np.ndarray = np.zeros(1)
 
+@dataclass
+class ParamValue:
+    name:str
+    value:float
+    encoding:List[float]
 
 # Dataset format: numpy.ndarray (num_points,1,num_samples)
 
@@ -39,12 +45,12 @@ class Parameter:
         return self.get_value(index)
 
     def get_value(self,index:int)->ParamValue:
-        return (
-            self.name,
+        return ParamValue(
+            name=self.name,
             #Actual value
-            self.levels[index],
+            value = self.levels[index],
             #One HOT encoding
-            to_categorical(index,num_classes=len(self.levels)))
+            encoding = to_categorical(index,num_classes=len(self.levels)))
 
     def decode(self,one_hot:List[float])->ParamValue:
         ind = np.array(one_hot).argmax()
@@ -91,8 +97,8 @@ class ParameterSet:
 
     def to_sample(self,settings:List[ParamValue])->Sample:
         #print(str(settings))
-        oneHOT = np.hstack([p[2] for p in settings])
-        params = [(p[0],p[1]) for p in settings] #Tuples of param name,value
+        oneHOT = np.hstack([p.encoding for p in settings])
+        params = [(p.name,p.value) for p in settings] #Tuples of param name,value
         #print("OneHOT: {}".format(oneHOT))
         return Sample(params, oneHOT )
 
@@ -148,6 +154,7 @@ class DatasetGenerator():
             self.index = self.index + 1
         self.save_audio(dataset)
         self.save_labels(dataset)
+        self.save_parameters()
 
 
     def save_audio(self,dataset:List[Sample]):
@@ -164,7 +171,8 @@ class DatasetGenerator():
         np.save(self.get_dataset_filename(dataset,"labels"),param_data)
 
     def save_parameters(self):
-        pass
+        with open(self.get_dataset_filename(None,"params"), 'wb') as file:
+            dump(self.parameters,file)
 
 
     def get_dataset_filename(self,dataset,type:str)->str:
