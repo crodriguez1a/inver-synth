@@ -23,75 +23,6 @@ class Sample:
 
 # Dataset format: numpy.ndarray (num_points,1,num_samples)
 
-class DatasetGenerator():
-    def __init__(self,name: str, dataset_dir:str, wave_file_dir:str, parameters: list, normalise:bool=True, fixed_parameters:dict={} ):
-        self.name = name
-        self.parameters = parameters
-        self.dataset_dir = dataset_dir
-        self.wave_file_dir = wave_file_dir
-        self.index = 0
-        self.normalise = normalise
-        self.fixed_parameters=fixed_parameters
-
-    def generate(self,sound_generator:SoundGenerator,length:float=0.1,sample_rate:int=44100,max:int=10,method:str='complete'):
-        self.index = 0
-        dataset:List[Sample] = []
-        if method == "complete":
-            dataset = self.parameters.recursively_generate_all()
-        else:
-            dataset = self.parameters.sample_space(sample_size=max)
-
-        n_samps = int(length*sample_rate)
-        for p in dataset:
-            p.length = length
-            p.sample_rate = sample_rate
-        print("First sample: {}".format(dataset[0]))
-        print("First parameters: {}".format(dict(dataset[0].parameter_values)))
-        for p in dataset:
-            #print("Sample: {}".format(p))
-            params = self.fixed_parameters.copy()
-            params.update(dict(p.parameter_values))
-            audio = sound_generator.generate(
-                params,self.get_wave_filename(self.index),
-                p.length, p.sample_rate)
-            if self.normalise:
-                max = np.max(np.absolute(audio))
-                if max > 0:
-                    audio = audio / max
-            p.audio = audio[:n_samps]
-            if not sound_generator.creates_wave_file():
-                self.write_file(audio,self.get_wave_filename(self.index),sample_rate)
-            self.index = self.index + 1
-        self.save_audio(dataset)
-        self.save_labels(dataset)
-
-
-    def save_audio(self,dataset:List[Sample]):
-        audio = tuple(t.audio for t in dataset)
-        audio_data = np.expand_dims(np.vstack(audio), axis=1)
-        print("Audio data: {}".format(audio_data.shape))
-        np.save(self.get_dataset_filename(dataset,"input"),audio_data)
-
-    def save_labels(self,dataset:List[Sample]):
-        param = tuple(t.parameter_encoding for t in dataset)
-        #param_data = np.expand_dims(np.vstack(param), axis=1)
-        param_data = np.vstack(param)
-        print("Param data: {}".format(param_data.shape))
-        np.save(self.get_dataset_filename(dataset,"labels"),param_data)
-
-
-    def get_dataset_filename(self,dataset,type:str)->str:
-        return "{}/{}_{}".format(self.dataset_dir,self.name,type)
-
-    def get_wave_filename(self,index:int)->str:
-        return "{}/{}_{:05d}.wav".format(self.wave_file_dir,self.name,index)
-
-
-    # Assumes that the data is -1..1 floating point
-    def write_file(self,data : np.ndarray,filename:str,sample_rate:int):
-        int_data = (data * np.iinfo(np.int16).max).astype(int)
-        write_wav(filename, sample_rate, data)
-
 
 # Model architectures
 
@@ -119,7 +50,7 @@ class Parameter:
         ind = np.array(one_hot).argmax()
         return self.get_value(ind)
 
-    def from_output(self,current_output:List[float])->Tuple[ParamVal,List[float]]:
+    def from_output(self,current_output:List[float])->Tuple[ParamValue,List[float]]:
         param_data = current_output[:len(self.levels)]
         remaining = current_output[len(self.levels):]
         my_val = self.decode(param_data)
@@ -128,8 +59,9 @@ class Parameter:
 
 
 class ParameterSet:
-    def __init__(self,parameters: List[Parameter] ):
+    def __init__(self,parameters: List[Parameter], fixed_parameters:dict={} ):
         self.parameters = parameters
+        self.fixed_parameters = fixed_parameters
 
     def sample_space(self,sample_size=1000)->Sequence[Sample]:
         print("Sampling {} points from parameter space".format(sample_size))
@@ -164,14 +96,90 @@ class ParameterSet:
         #print("OneHOT: {}".format(oneHOT))
         return Sample(params, oneHOT )
 
+    def to_settings(self,p:Sample):
+        params = self.fixed_parameters.copy()
+        params.update(dict(p.parameter_values))
+        return params
+
     def decode(self,output:List[float])->List[ParamValue]:
         values = []
-        for p in self.parameters
+        for p in self.parameters:
             v,output = p.from_output(output)
             values.append(v)
         if len(output) > 0:
             print("Leftover output!: {}".format(output))
         return values
+
+class DatasetGenerator():
+    def __init__(self,name: str, dataset_dir:str, wave_file_dir:str, parameters: ParameterSet, normalise:bool=True ):
+        self.name = name
+        self.parameters = parameters
+        self.dataset_dir = dataset_dir
+        self.wave_file_dir = wave_file_dir
+        self.index = 0
+        self.normalise = normalise
+
+    def generate(self,sound_generator:SoundGenerator,length:float=0.1,sample_rate:int=44100,max:int=10,method:str='complete'):
+        self.index = 0
+        dataset:List[Sample] = []
+        if method == "complete":
+            dataset = self.parameters.recursively_generate_all()
+        else:
+            dataset = self.parameters.sample_space(sample_size=max)
+
+        n_samps = int(length*sample_rate)
+        for p in dataset:
+            p.length = length
+            p.sample_rate = sample_rate
+        print("First sample: {}".format(dataset[0]))
+        print("First parameters: {}".format(dict(dataset[0].parameter_values)))
+        for p in dataset:
+            params = self.parameters.to_settings(p)
+            audio = sound_generator.generate(
+                params,self.get_wave_filename(self.index),
+                p.length, p.sample_rate)
+            if self.normalise:
+                max = np.max(np.absolute(audio))
+                if max > 0:
+                    audio = audio / max
+            p.audio = audio[:n_samps]
+            if not sound_generator.creates_wave_file():
+                self.write_file(audio,self.get_wave_filename(self.index),sample_rate)
+            self.index = self.index + 1
+        self.save_audio(dataset)
+        self.save_labels(dataset)
+
+
+    def save_audio(self,dataset:List[Sample]):
+        audio = tuple(t.audio for t in dataset)
+        audio_data = np.expand_dims(np.vstack(audio), axis=1)
+        print("Audio data: {}".format(audio_data.shape))
+        np.save(self.get_dataset_filename(dataset,"input"),audio_data)
+
+    def save_labels(self,dataset:List[Sample]):
+        param = tuple(t.parameter_encoding for t in dataset)
+        #param_data = np.expand_dims(np.vstack(param), axis=1)
+        param_data = np.vstack(param)
+        print("Param data: {}".format(param_data.shape))
+        np.save(self.get_dataset_filename(dataset,"labels"),param_data)
+
+    def save_parameters(self):
+        pass
+
+
+    def get_dataset_filename(self,dataset,type:str)->str:
+        return "{}/{}_{}".format(self.dataset_dir,self.name,type)
+
+    def get_wave_filename(self,index:int)->str:
+        return "{}/{}_{:05d}.wav".format(self.wave_file_dir,self.name,index)
+
+
+    # Assumes that the data is -1..1 floating point
+    def write_file(self,data : np.ndarray,filename:str,sample_rate:int):
+        int_data = (data * np.iinfo(np.int16).max).astype(int)
+        write_wav(filename, sample_rate, data)
+
+
 
 if __name__ == "__main__":
     gen = SoundGenerator()
