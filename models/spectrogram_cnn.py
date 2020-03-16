@@ -10,6 +10,9 @@ from models.app import summarize_compile, fit, data_format_audio, train_val_spli
 from models.common.utils import utils
 from models.common.architectures import layers_map
 
+from generators.generator import *
+from pickle import load
+
 """
 The STFT spectrogram of the input signal is fed
 into a 2D CNN that predicts the synthesizer parameter
@@ -89,6 +92,12 @@ if __name__ == "__main__":
     n_label_examples: int = y_train.shape[0]
     print("Label Length: {}, number of examples: {}".format(n_labels,n_label_examples))
 
+    # Parameter data - needed for decoding!
+    param_file: str = os.getcwd() + os.getenv('PARAMETERS')
+    with open(param_file,'rb') as f:
+        parameters : ParameterSet = load(f)
+
+
     # set keras image_data_format
     data_format: str = os.getenv('IMAGE_DATA_FORMAT', 'channels_first')
     keras.backend.set_image_data_format(data_format)
@@ -118,4 +127,4 @@ if __name__ == "__main__":
 
     # evaluate prediction on validation set
     prediction: np.ndarray = model.predict(x_val)
-    evaluate(prediction, x_val, y_val)
+    evaluate(prediction, x_val, y_val, parameters)

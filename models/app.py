@@ -5,6 +5,9 @@ import numpy as np
 from pathlib import Path
 from dotenv import load_dotenv
 
+from typing import Dict, Tuple, Sequence, List
+from generators.generator import *
+
 """Dotenv Config"""
 env_path = Path('.') / '.env'
 load_dotenv(dotenv_path=env_path)
@@ -82,16 +85,30 @@ def fit(model: keras.Model,
     return model
 
 
-def _prediction_shape(prediction, x, y):
+def _prediction_shape(prediction, x, y,params):
     print("Prediction Shape: {}".format(prediction.shape))
     for i in range(min(x.shape[0],30)):
         print("Pred: {}".format(np.round(prediction[i],decimals=2)))
         print("PRnd: {}".format(np.round(prediction[i])))
         print("Act : {}".format(y[i]))
+        print("+" * 5)
+        names = ""
+        act_s = ""
+        pred_s = ""
+        pred:List[ParamValue] = params.decode(prediction[i])
+        act:List[ParamValue] = params.decode(y[i])
+        for p in act:
+            names += p.name.rjust(10)
+            act_s += f'{p.value:>10}'
+        for p in pred:
+            pred_s += f'{p.value:>10}'
+        print(names)
+        print(act_s)
+        print(pred_s)
         print("-" * 30)
 
-def evaluate(prediction: np.ndarray, x: np.ndarray, y: np.ndarray):
-    _prediction_shape(prediction, x, y)
+def evaluate(prediction: np.ndarray, x: np.ndarray, y: np.ndarray, params):
+    _prediction_shape(prediction, x, y, params)
 
     num: int = x.shape[0]
     correct: int = 0
