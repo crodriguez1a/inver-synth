@@ -14,7 +14,7 @@ custom synthesis, VST plugins)
 
 class SoundGenerator:
     def generate(self,parameters:dict,filename:str,length:float,sample_rate:int)->np.ndarray:
-        print("Someone needs to write this method! Generating {} with parameters:{}".format(filename,str(parameters)))
+        print("Someone needs to write this method! Generating silence in {} with parameters:{}".format(filename,str(parameters)))
         return np.zeros(int(length*sample_rate))
 
     def creates_wave_file(self)->bool:
