@@ -83,7 +83,7 @@ if __name__ == "__main__":
 
     # TEMP!
 
-    dataset: str = os.getcwd() + os.getenv('TRAINING_SET')
+    dataset: str = os.getcwd() + "/" + os.getenv('TRAINING_SET')
     params = {
             'data_file':dataset,
             'batch_size': 64,
@@ -111,7 +111,7 @@ if __name__ == "__main__":
 
 
     # Parameter data - needed for decoding!
-    param_file: str = os.getcwd() + os.getenv('PARAMETERS')
+    param_file: str = os.getcwd() + "/" + os.getenv('PARAMETERS')
     with open(param_file,'rb') as f:
         parameters : ParameterSet = load(f)
 
