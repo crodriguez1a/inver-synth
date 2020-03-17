@@ -98,57 +98,6 @@ class VSTGenerator(SoundGenerator):
         return output
 
 
-def generate_dexed():
-    sample_rate = 16384
-    gen = VSTGenerator(vst="/Library/Audio/Plug-Ins/VST/Dexed.vst", sample_rate = 16384)
-    # Create blank config file
-    gen.create_config("plugin_config/dexed_gen.json", default_value=0.5)
-
-def run_dexed():
-    sample_rate = 16384
-    gen = VSTGenerator(vst="/Library/Audio/Plug-Ins/VST/Dexed.vst", sample_rate = 16384)
-    with open('plugin_config/dexed.json','r') as f:
-        config = json.load(f)
-
-    sample = [Parameter(p['name'],p['values']) for p in config['parameters']]
-    fixed = dict([(p['name'],p['value']) for p in config['fixed_parameters']])
-    parameters=ParameterSet(
-        parameters = sample,
-        fixed_parameters = fixed
-    )
-    g = DatasetCreator("dexed_generator",
-        dataset_dir="test_datasets",
-        wave_file_dir="test_waves/dexed_set/",
-        parameters=parameters
-    )
-    g.generate(sound_generator=gen,length=1,sample_rate=sample_rate,method="random",max=30,extra={'note_length':0.8,'config':config})
-
-def generate_locomotiv():
-    sample_rate = 16384
-    gen = VSTGenerator(vst="/Library/Audio/Plug-Ins/VST/Lokomotiv.vst", sample_rate = 16384)
-    # Create blank config file
-    gen.create_config("plugin_config/lokomotiv_gen.json", default_value=0.5)
-
-def run_locomotiv():
-    sample_rate = 16384
-    gen = VSTGenerator(vst="/Library/Audio/Plug-Ins/VST/Lokomotiv.vst", sample_rate = 16384)
-
-    with open('plugin_config/lokomotiv.json','r') as f:
-        config = json.load(f)
-
-    sample = [Parameter(p['name'],p['values']) for p in config['parameters']]
-    fixed = dict([(p['name'],p['value']) for p in config['fixed_parameters']])
-    parameters=ParameterSet(
-        parameters = sample,
-        fixed_parameters = fixed
-    )
-    g = DatasetCreator("locomotiv_generator",
-        dataset_dir="test_datasets",
-        wave_file_dir="test_waves/locomotiv_set/",
-        parameters=parameters
-    )
-    g.generate(sound_generator=gen,length=1,sample_rate=sample_rate,method="random",max=150000,extra={'note_length':0.8,'config':config})
-
 # Run the generator to create a full dataset
 def run_generator(name:str,plugin:str,config:str,max:int,
         dataset_directory:str,wavefile_directory:str,
@@ -186,6 +135,9 @@ def run_generator(name:str,plugin:str,config:str,max:int,
 def generate_defaults(plugin:str,output:str,default:float=0.5):
     gen = VSTGenerator(vst=plugin, sample_rate = 16384)
     gen.create_config(output, default_value=default)
+
+
+# Example: python -m generators.vst_generator run --plugin /Library/Audio/Plug-Ins/VST/Lokomotiv.vst --config plugin_config/lokomotiv.json --dataset_name explore --wavefile_directory "test_waves/explore"
 
 if __name__ == "__main__":
     import argparse
