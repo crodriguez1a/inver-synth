@@ -4,6 +4,7 @@ import numpy as np
 from typing import Dict, Tuple, Sequence, List
 #ParamValue = Tuple[str,float,List[float]]
 import random
+import os
 
 from generators.parameters import *
 
@@ -34,6 +35,8 @@ class DatasetCreator():
         self.wave_file_dir = wave_file_dir
         self.index = 0
         self.normalise = normalise
+        os.makedirs(dataset_dir, exist_ok=True)
+        os.makedirs(wave_file_dir, exist_ok=True)
 
     def generate(self,sound_generator:SoundGenerator,length:float=0.1,sample_rate:int=44100,max:int=10,method:str='complete',extra:dict={}):
         self.index = 0
