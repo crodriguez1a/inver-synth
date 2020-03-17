@@ -22,9 +22,9 @@ class Sample:
     #parameter_values: List[Tuple[str,float]]
     #parameter_encoding:List[List[float]]
     parameters : List[ParamValue]
-    length:float=0.1
-    sample_rate:int = 44100
-    audio:np.ndarray = np.zeros(1)
+    #length:float=0.1
+    #sample_rate:int = 44100
+    #audio:np.ndarray = np.zeros(1)
 
     def value_list(self)->List[Tuple[str,float]]:
         return [(p.name,p.value) for p in self.parameters]

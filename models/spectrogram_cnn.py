@@ -9,6 +9,7 @@ from kapre.time_frequency import Spectrogram
 from models.app import summarize_compile, fit, data_format_audio, train_val_split, evaluate
 from models.common.utils import utils
 from models.common.architectures import layers_map
+from models.common.data_generator import SoundDataGenerator
 
 from generators.generator import *
 from pickle import load
@@ -78,19 +79,36 @@ def assemble_model(src: np.ndarray,
     return keras.Model(inputs=inputs, outputs=outputs)
 
 if __name__ == "__main__":
-    # Load in training data
+
+
+    # TEMP!
+
     dataset: str = os.getcwd() + os.getenv('TRAINING_SET')
-    x_train: np.ndarray = np.load(dataset)
-    n_samples: int = x_train.shape[2]
-    n_examples: int = x_train.shape[0]
-    print("Length: {}, number of examples: {}".format(n_samples,n_examples))
+    params = {
+            'data_file':dataset,
+            'batch_size': 64,
+            'shuffle': True
+            }
+
+    training_generator = SoundDataGenerator(first=0.8, **params)
+    validation_generator = SoundDataGenerator(last=0.2, **params)
+
+    n_samples = training_generator.get_audio_length()
+    n_outputs = training_generator.get_label_size()
+
+    # Load in training data
+    # x_train: np.ndarray = np.load(dataset)
+    # n_samples: int = x_train.shape[2]
+    # n_examples: int = x_train.shape[0]
+    # print("Length: {}, number of examples: {}".format(n_samples,n_examples))
 
     # Load in label data
-    labels: str = os.getcwd() + os.getenv('LABELS')
-    y_train: np.ndarray = np.load(labels)
-    n_labels: int = y_train.shape[1]
-    n_label_examples: int = y_train.shape[0]
-    print("Label Length: {}, number of examples: {}".format(n_labels,n_label_examples))
+    # labels: str = os.getcwd() + os.getenv('LABELS')
+    # y_train: np.ndarray = np.load(labels)
+    # n_labels: int = y_train.shape[1]
+    # n_label_examples: int = y_train.shape[0]
+    # print("Label Length: {}, number of examples: {}".format(n_labels,n_label_examples))
+
 
     # Parameter data - needed for decoding!
     param_file: str = os.getcwd() + os.getenv('PARAMETERS')
@@ -105,25 +123,31 @@ if __name__ == "__main__":
 
 
     model: keras.Model = assemble_model(np.zeros([1,n_samples]),
-                                        n_outputs=n_labels,
+                                        n_outputs=n_outputs,
                                         arch_layers=arch_layers,
                                         data_format=data_format)
 
     # Reserve samples for validation
-    split: float = .2
-    x_val, y_val, x_train, y_train = train_val_split(x_train, y_train, split)
-    print("Shapes: x_val={}, y_val={}, x_train={}, y_train={}".format(x_val.shape,y_val.shape,x_train.shape,y_train.shape))
+    #split: float = .2
+    #x_val, y_val, x_train, y_train = train_val_split(x_train, y_train, split)
+    #print("Shapes: x_val={}, y_val={}, x_train={}, y_train={}".format(x_val.shape,y_val.shape,x_train.shape,y_train.shape))
 
     # Summarize and compile the model
     summarize_compile(model)
 
     # Fit, with validation
     epochs: int = int(os.getenv('EPOCHS', 100))  # @paper: 100
-    model: keras.Model = fit(model,
-                             x_train, y_train,
-                             x_val, y_val,
-                             epochs=epochs,)
+    #model: keras.Model =
+    model.fit_generator(generator=training_generator,
+        validation_data=validation_generator,
+        epochs=epochs)
+    #model: keras.Model = fit(model,
+                             #x_train, y_train,
+                             #x_val, y_val,
+                             #epochs=epochs,)
 
-    # evaluate prediction on validation set
-    prediction: np.ndarray = model.predict(x_val)
-    evaluate(prediction, x_val, y_val, parameters)
+    # evaluate prediction on random sample from validation set
+    validation_generator.on_epoch_end()
+    X,y = validation_generator.__getitem__(0)
+    prediction: np.ndarray = model.predict(X)
+    evaluate(prediction, X, y, parameters)

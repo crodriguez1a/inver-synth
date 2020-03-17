@@ -5,6 +5,7 @@ from typing import Dict, Tuple, Sequence, List
 #ParamValue = Tuple[str,float,List[float]]
 import random
 import os
+import h5py
 
 from generators.parameters import *
 
@@ -38,7 +39,8 @@ class DatasetCreator():
         os.makedirs(dataset_dir, exist_ok=True)
         os.makedirs(wave_file_dir, exist_ok=True)
 
-    def generate(self,sound_generator:SoundGenerator,length:float=0.1,sample_rate:int=44100,max:int=10,method:str='complete',extra:dict={}):
+    def generate(self,sound_generator:SoundGenerator,length:float=0.1,
+            sample_rate:int=44100,max:int=10,method:str='complete',extra:dict={}):
         self.index = 0
         dataset:List[Sample] = []
         if method == "complete":
@@ -47,50 +49,59 @@ class DatasetCreator():
             dataset = self.parameters.sample_space(sample_size=max)
 
         n_samps = int(length*sample_rate)
-        for p in dataset:
-            p.length = length
-            p.sample_rate = sample_rate
-        print("First sample: {}".format(dataset[0]))
-        print("First parameters: {}".format(dict(dataset[0].value_list())))
+        #print("First sample: {}".format(dataset[0]))
+        #print("First parameters: {}".format(dict(dataset[0].value_list())))
+        records = len(dataset)
+        param_size = len(dataset[0].encode())
+
+        datafile = h5py.File(self.get_dataset_filename(dataset,"data",'hdf5'),'w')
+        filenames = datafile.create_dataset("files", (records,), dtype=h5py.string_dtype())
+        labels = datafile.create_dataset("labels", (records,param_size))
+
         for p in dataset:
             params = self.parameters.to_settings(p)
             audio = sound_generator.generate(
                 params,self.get_wave_filename(self.index),
-                p.length, p.sample_rate, extra)
+                length, sample_rate, extra)
+
             if self.normalise:
                 max = np.max(np.absolute(audio))
                 if max > 0:
                     audio = audio / max
-            p.audio = audio[:n_samps]
+
+            filename = self.get_wave_filename(self.index)
+            filenames[self.index] = filename
+            labels[self.index] = p.encode()
             if not sound_generator.creates_wave_file():
                 self.write_file(audio,self.get_wave_filename(self.index),sample_rate)
             if self.index % 1000 == 0:
                 print("Generating example {}".format(self.index))
             self.index = self.index + 1
-        self.save_audio(dataset)
-        self.save_labels(dataset)
+            datafile.flush()
+        datafile.close()
+        #self.save_audio(dataset)
+        #self.save_labels(dataset)
         self.save_parameters()
 
+    ##def save_audio(self,dataset:List[Sample]):
+        #audio = tuple(t.audio for t in dataset)
+        #audio_data = np.expand_dims(np.vstack(audio), axis=1)
+        #print("Audio data: {}".format(audio_data.shape))
+        #np.save(self.get_dataset_filename(dataset,"input"),audio_data)
 
-    def save_audio(self,dataset:List[Sample]):
-        audio = tuple(t.audio for t in dataset)
-        audio_data = np.expand_dims(np.vstack(audio), axis=1)
-        print("Audio data: {}".format(audio_data.shape))
-        np.save(self.get_dataset_filename(dataset,"input"),audio_data)
-
-    def save_labels(self,dataset:List[Sample]):
-        param = tuple(t.encode() for t in dataset)
-        #param_data = np.expand_dims(np.vstack(param), axis=1)
-        param_data = np.vstack(param)
-        print("Param data: {}".format(param_data.shape))
-        np.save(self.get_dataset_filename(dataset,"labels"),param_data)
+    #def save_labels(self,dataset:List[Sample]):
+        #param = tuple(t.encode() for t in dataset)
+        ##param_data = np.expand_dims(np.vstack(param), axis=1)
+        #param_data = np.vstack(param)
+        #print("Param data: {}".format(param_data.shape))
+        #np.save(self.get_dataset_filename(dataset,"labels"),param_data)
 
     def save_parameters(self):
-        self.parameters.save(self.get_dataset_filename(None,"params"))
+        self.parameters.save(self.get_dataset_filename(None,"params",'json'))
 
 
-    def get_dataset_filename(self,dataset,type:str)->str:
-        return "{}/{}_{}".format(self.dataset_dir,self.name,type)
+    def get_dataset_filename(self,dataset,type:str,extension:str="txt")->str:
+        return "{}/{}_{}.{}".format(self.dataset_dir,self.name,type,extension)
 
     def get_wave_filename(self,index:int)->str:
         return "{}/{}_{:05d}.wav".format(self.wave_file_dir,self.name,index)
