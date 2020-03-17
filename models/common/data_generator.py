@@ -17,6 +17,7 @@ class SoundDataGenerator(keras.utils.Sequence):
         self.n_channels = 1
 
         database = h5py.File(data_file,"r")
+
         self.database = database
 
         self.n_samps = self.read_file(0).shape[0]

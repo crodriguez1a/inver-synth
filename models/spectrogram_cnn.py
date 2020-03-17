@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
     dataset: str = os.getcwd() + "/" + os.getenv('TRAINING_SET')
     params = {
-            'data_file':dataset,
+            'data_file': dataset,
             'batch_size': 64,
             'shuffle': True
             }
@@ -137,11 +137,14 @@ if __name__ == "__main__":
 
     # Fit, with validation
     epochs: int = int(os.getenv('EPOCHS', 100))  # @paper: 100
-    #model: keras.Model =
+
+    # NOTE: `fit_generator` trains the model on data generated
+    # batch-by-batch using `training_generator` (keras.utils.Sequence instance)
     model.fit_generator(generator=training_generator,
-        validation_data=validation_generator,
-        epochs=epochs)
-    #model: keras.Model = fit(model,
+                        validation_data=validation_generator,
+                        epochs=epochs,)
+
+    # model: keras.Model = fit(model,
                              #x_train, y_train,
                              #x_val, y_val,
                              #epochs=epochs,)
