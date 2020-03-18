@@ -3,6 +3,7 @@ from typing import Dict, Tuple, Sequence, List
 from dataclasses import dataclass
 import random
 from pickle import dump
+import math
 
 """
 A setting for a parameter, with its oneHOT encoding
@@ -116,3 +117,21 @@ class ParameterSet:
     def save(self,filename):
         with open(filename, 'wb') as file:
             dump(self,file)
+
+"""
+Generates evenly spaced parameter values
+paper:
+The rest of the synthesizer parameters ranges are quantized evenly to 16
+classes according to the following ranges ...
+For each parameter, the first and last classes correspond to its range limits
+"""
+def param_range(steps,min,max):
+    ext = float(max - min)
+    return [n * ext/(steps-1) + min for n in range(steps)]
+
+"""
+Generates a set of frequencies as per paper
+paper: f = 2^(n/12)/ 440Hz with n in 0..15
+"""
+def freq_range(steps):
+    return [math.pow(2,n/12) * 440 for n in range(steps)]
