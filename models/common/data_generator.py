@@ -3,6 +3,8 @@ import keras
 from scipy.io import wavfile
 import h5py
 
+from functools import lru_cache
+
 class SoundDataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
     def __init__(self, data_file=None, batch_size=32, n_samps=16384,
@@ -67,6 +69,7 @@ class SoundDataGenerator(keras.utils.Sequence):
         if self.shuffle == True:
             np.random.shuffle(self.indexes)
 
+    @lru_cache(maxsize=150000)
     def read_file(self,index):
         filename = self.database['files'][index]
         fs, data = wavfile.read(filename)
@@ -91,5 +94,5 @@ class SoundDataGenerator(keras.utils.Sequence):
             X.append(data[:self.n_samps])
         Xd = np.expand_dims(np.vstack(X), axis=1)
         yd = np.vstack(y)
-        
+
         return Xd, yd
