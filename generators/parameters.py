@@ -118,6 +118,16 @@ class ParameterSet:
         with open(filename, 'wb') as file:
             dump(self,file)
 
+    def explain(self):
+        levels = 0
+        for p in self.parameters:
+            levels += len(p.levels)
+        return {
+            "n_variable":len(self.parameters),
+            "n_fixed":len(self.fixed_parameters),
+            "levels":levels
+        }
+
 """
 Generates evenly spaced parameter values
 paper:

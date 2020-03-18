@@ -85,44 +85,81 @@ def fit(model: keras.Model,
     return model
 
 
-def _prediction_shape(prediction: np.ndarray,
-                      x: np.ndarray,
-                      y: np.ndarray,
-                      params: ParameterSet,):
-    print("Prediction Shape: {}".format(prediction.shape))
-    for i in range(min(x.shape[0],30)):
-        print("Pred: {}".format(np.round(prediction[i],decimals=2)))
-        print("PRnd: {}".format(np.round(prediction[i])))
-        print("Act : {}".format(y[i]))
+
+def compare(target,prediction,params,precision=1,print_output=False):
+    if print_output and len(prediction) < 10:
+        print(prediction)
+        print("Pred: {}".format(np.round(prediction,decimals=2)))
+        print("PRnd: {}".format(np.round(prediction)))
+        print("Act : {}".format(target))
         print("+" * 5)
-        names = ""
-        act_s = ""
-        pred_s = ""
-        pred:List[ParamValue] = params.decode(prediction[i])
-        act:List[ParamValue] = params.decode(y[i])
-        for p in act:
-            names += p.name.rjust(10)
-            act_s += f'{p.value:>10}'
-        for p in pred:
-            pred_s += f'{p.value:>10}'
+
+    pred:List[ParamValue] = params.decode(prediction)
+    act:List[ParamValue] = params.decode(target)
+    pred_index:List[int] = [np.array(p.encoding).argmax() for p in pred]
+    act_index:List[int] = [np.array(p.encoding).argmax() for p in act]
+    width = 8
+    names =     "Parameter: "
+    act_s =     "Actual:    "
+    pred_s =    "Predicted: "
+    pred_i =    "Pred. Indx:"
+    act_i =     "Act. Index:"
+    diff_i =    "Index Diff:"
+    for p in act:
+        names += p.name.rjust(width)[:width]
+        act_s += f'{p.value:>8.2f}'
+    for p in pred:
+        pred_s += f'{p.value:>8.2f}'
+    for p in pred_index:
+        pred_i += f'{p:>8}'
+    for p in act_index:
+        act_i += f'{p:>8}'
+    for i in range(len(act_index)):
+        diff = pred_index[i] - act_index[i]
+        diff_i += f'{diff:>8}'
+    exact = 0.0
+    close = 0.0
+    n_params = len(pred_index)
+    for i in range(n_params):
+        if pred_index[i] == act_index[i]:
+            exact = exact + 1.0
+        if abs(pred_index[i] - act_index[i]) <= precision:
+            close = close + 1.0
+    exact_ratio = exact / n_params
+    close_ratio = close / n_params
+    if print_output:
         print(names)
         print(act_s)
         print(pred_s)
+        print(act_i)
+        print(pred_i)
+        print(diff_i)
         print("-" * 30)
+    return exact_ratio, close_ratio
 
 def evaluate(prediction: np.ndarray,
              x: np.ndarray,
              y: np.ndarray,
              params: ParameterSet,):
-             
-    _prediction_shape(prediction, x, y, params)
+
+    print("Prediction Shape: {}".format(prediction.shape))
 
     num: int = x.shape[0]
     correct: int = 0
+    correct_r: float = 0.0
+    close_r: float = 0.0
     for i in range(num):
-        if np.absolute( np.round(prediction[i]) - y[i] ).sum() < 0.1:
+        should_print = i < 5
+        exact,close = compare(target=y[i],prediction=prediction[i],params=params,print_output=should_print)
+        if exact == 1.0:
             correct = correct + 1
-    print("Got {} out of {} ({}%)".format(correct,num, correct/num * 100 ))
+        correct_r += exact
+        close_r += close
+    summary = params.explain()
+    print("{} Parameters with {} levels (fixed: {})".format(
+        summary['n_variable'],summary['levels'],summary['n_fixed']))
+    print("Got {} out of {} ({:.1f}% perfect); Exact params: {:.1f}%, Close params: {:.1f}%".format(
+        correct,num, correct/num * 100, correct_r/num * 100, close_r/num * 100 ))
 
 
 def data_format_audio(audio: np.ndarray, data_format: str) -> np.ndarray:
