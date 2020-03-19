@@ -19,8 +19,6 @@ class SynthplayerGenerator(SoundGenerator):
         gen = osc.blocks()
         while len(data) < n_samps:
             data.extend(next(gen))
-
-        print(np.array(data).shape)
         return np.array(data)
 
     """
