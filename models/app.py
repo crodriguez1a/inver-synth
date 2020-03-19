@@ -1,5 +1,5 @@
 import os
-import keras
+from tensorflow import keras
 import logging
 import numpy as np
 from pathlib import Path
@@ -12,15 +12,8 @@ from generators.generator import *
 env_path = Path('.') / '.env'
 load_dotenv(dotenv_path=env_path)
 
-"""Audio Samples"""
-# NOTE: May need true FM synthesizer generator
-# credit: https://beatproduction.net/korg-m1-piano-samples/
-m1_sample: str = os.getcwd() + '/audio/samples/M1_Piano_C4.wav'
-# credit: https://freewavesamples.com/yamaha-dx7-bass-c2
-dx7_sample: str = os.getcwd() + '/audio/samples/Yamaha-DX7-Bass-C2.wav'
 
 """Data Utils"""
-
 
 def train_val_split(x_train: np.ndarray,
                     y_train: np.ndarray,
@@ -114,7 +107,7 @@ def evaluate(prediction: np.ndarray,
              x: np.ndarray,
              y: np.ndarray,
              params: ParameterSet,):
-             
+
     _prediction_shape(prediction, x, y, params)
 
     num: int = x.shape[0]
