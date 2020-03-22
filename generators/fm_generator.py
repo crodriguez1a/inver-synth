@@ -107,25 +107,25 @@ if __name__ == "__main__":
     * resonance q in [0.01, 10]
     """
     search_parameters = [
-        Parameter("f1",freq_range(3)),
-        Parameter("v1",param_range(2,1,30)),
-        Parameter("A1",param_range(5,0., 1.)),
-        Parameter("B1",param_range(5,0., 1.5)),
+        Parameter("f1",freq_range(16)),
+        Parameter("v1",param_range(16,1,30)),
+        Parameter("A1",param_range(16,0., 1.)),
+        Parameter("B1",param_range(16,0., 1.5)),
 
-        #Parameter("f2",[100,250,470])
-        #Parameter("v2",[1,2,3]),
-        #Parameter("A2",[0.0, 0.5, 1.0]),
-        #Parameter("B2",[0.0,0.1,0.2]),
+        Parameter("f2",freq_range(16)),
+        Parameter("v2",param_range(16,1,30)),
+        Parameter("A2",param_range(16,0., 1.)),
+        Parameter("B2",param_range(16,0., 1.5)),
 
-        #Parameter("f3",[100,250,470]),
-        #Parameter("v3",[1,2,3]),
-        #Parameter("A3",[0.0, 0.5, 1.0]),
-        #Parameter("B3",[0.0,0.1,0.2]),
+        Parameter("f3",freq_range(16)),
+        Parameter("v3",param_range(16,1,30)),
+        Parameter("A3",param_range(16,0., 1.)),
+        Parameter("B3",param_range(16,0., 1.5)),
 
-        #Parameter("f4",[100,250,470]),
-        #Parameter("v4",[1,2,3]),
-        #Parameter("A4",[0.0, 0.5, 1.0]),
-        #Parameter("B4",[0.0,0.1,0.2]),
+        Parameter("f4",freq_range(16)),
+        Parameter("v4",param_range(16,1,30)),
+        Parameter("A4",param_range(16,0., 1.)),
+        Parameter("B4",param_range(16,0., 1.5)),
 
         #Parameter("attack",[0., 0.1, 0.2]),
         #Parameter("decay",[0., 0.1, 0.2]),
@@ -171,9 +171,9 @@ if __name__ == "__main__":
         parameters = search_parameters,
         fixed_parameters = fixed_parameters
     )
-    g = DatasetCreator("inversynth",
+    g = DatasetCreator("inversynth_full",
         dataset_dir="test_datasets",
-        wave_file_dir="test_waves/inversynth/",
+        wave_file_dir="test_waves/inversynth_full/",
         parameters=parameters
     )
-    g.generate(sound_generator=gen,length=1,sample_rate=16384,method="random",max=10000)
+    g.generate(sound_generator=gen,length=1,sample_rate=16384,method="random",max=40000)

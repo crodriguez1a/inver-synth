@@ -5,6 +5,7 @@ import numpy as np
 import keras  # TODO: update to tf.keras when kapre goes to tf2.0
 # https://github.com/keunwoochoi/kapre/pull/58/commits/a3268110471466e4799621d0ae39bd05d84ee275
 from kapre.time_frequency import Spectrogram
+from keras.layers import Permute
 
 from models.app import summarize_compile, fit, data_format_audio, train_val_split, evaluate
 from models.common.utils import utils
@@ -41,8 +42,8 @@ def input_raw_audio(path: str, sr: int = 16384, duration: float = 1.) -> tuple:
 def assemble_model(src: np.ndarray,
                    n_outputs:int,
                    arch_layers: list,
-                   n_dft: int = 128,
-                   n_hop: int = 64,
+                   n_dft: int = 512, # Orig:128
+                   n_hop: int = 256, # Orig:64
                    data_format: str = 'channels_first',) -> keras.Model:
 
     inputs = keras.Input(shape=src.shape, name='stft')
@@ -57,6 +58,9 @@ def assemble_model(src: np.ndarray,
                                  trainable_kernel=True, name='static_stft',
                                  image_data_format=data_format,
                                  return_decibel_spectrogram=True,)(inputs)
+
+    # Swaps order to match the paper?
+    x:Permute = Permute((1,3,2))(x)
 
     for arch_layer in arch_layers:
         x = keras.layers.Conv2D(arch_layer.filters,
