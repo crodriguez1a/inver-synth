@@ -35,7 +35,7 @@ The file will look a bit like:
             "value": 0.5
         },
 ```
-with each paramter having an id (int) and a name, as well as a default value.
+with each parameter having an id (int) and a name, as well as a default value.
 
 Now, edit this file to set out the search space. Fixed parameters will be passed
 to the synth as is, while the general parameters are given a set of levels to

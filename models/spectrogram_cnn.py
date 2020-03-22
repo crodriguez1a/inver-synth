@@ -2,8 +2,7 @@ import os
 
 import numpy as np
 
-import keras  # TODO: update to tf.keras when kapre goes to tf2.0
-# https://github.com/keunwoochoi/kapre/pull/58/commits/a3268110471466e4799621d0ae39bd05d84ee275
+from tensorflow import keras
 from kapre.time_frequency import Spectrogram
 from keras.layers import Permute
 
@@ -14,6 +13,7 @@ from models.common.data_generator import SoundDataGenerator
 
 from generators.generator import *
 from pickle import load
+
 
 """
 The STFT spectrogram of the input signal is fed
@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
     dataset: str = os.getcwd() + "/" + os.getenv('TRAINING_SET')
     params = {
-            'data_file':dataset,
+            'data_file': dataset,
             'batch_size': 64,
             'shuffle': True
             }
@@ -98,6 +98,7 @@ if __name__ == "__main__":
     validation_generator = SoundDataGenerator(last=0.2, **params)
 
     n_samples = training_generator.get_audio_length()
+    print(f"get_audio_length: {n_samples}")
     n_outputs = training_generator.get_label_size()
 
     # Load in training data
@@ -120,7 +121,8 @@ if __name__ == "__main__":
         parameters : ParameterSet = load(f)
 
     # set keras image_data_format
-    data_format: str = os.getenv('IMAGE_DATA_FORMAT', 'channels_first')
+    # NOTE: on CPU only `channels_last` is supported
+    data_format: str = os.getenv('IMAGE_DATA_FORMAT', 'channels_last')
     keras.backend.set_image_data_format(data_format)
 
     arch_layers = layers_map.get(os.getenv('ARCHITECTURE', 'C1'))
@@ -141,11 +143,14 @@ if __name__ == "__main__":
 
     # Fit, with validation
     epochs: int = int(os.getenv('EPOCHS', 100))  # @paper: 100
-    #model: keras.Model =
+
+    # NOTE: `fit_generator` trains the model on data generated
+    # batch-by-batch using `training_generator` (keras.utils.Sequence instance)
     model.fit_generator(generator=training_generator,
-        validation_data=validation_generator,
-        epochs=epochs)
-    #model: keras.Model = fit(model,
+                        validation_data=validation_generator,
+                        epochs=epochs,)
+
+    # model: keras.Model = fit(model,
                              #x_train, y_train,
                              #x_val, y_val,
                              #epochs=epochs,)

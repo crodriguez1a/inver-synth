@@ -13,13 +13,13 @@ flake8 = "*"
 autopep8 = "*"
 
 [packages]
-kapre = "*"
+kapre = "==0.1.7"
 librosa = "*"
-keras = ">=2.0"
-tensorflow = "==2.0.1"
+tensorflow = "*"
 argparse = "*"
 python-dotenv = "*"
 soundfile = "*"
+synthplayer = "*"
 
 [requires]
 python_version = "3.7"

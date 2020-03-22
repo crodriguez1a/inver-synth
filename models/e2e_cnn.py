@@ -2,9 +2,7 @@ import os
 
 import numpy as np
 
-import keras  # TODO: update to tf.keras when kapre goes to tf2.0
-# https://github.com/keunwoochoi/kapre/pull/58/commits/a3268110471466e4799621d0ae39bd05d84ee275
-# from kapre.time_frequency import Spectrogram
+from tensorflow import keras
 
 from models.app import summarize_compile, fit, data_format_audio, train_val_split, evaluate
 from models.common.utils import utils
