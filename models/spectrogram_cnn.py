@@ -3,8 +3,8 @@ import os
 import numpy as np
 
 from tensorflow import keras
+# import keras
 from kapre.time_frequency import Spectrogram
-from keras.layers import Permute
 
 from models.app import summarize_compile, fit, data_format_audio, train_val_split, evaluate
 from models.common.utils import utils
@@ -60,7 +60,7 @@ def assemble_model(src: np.ndarray,
                                  return_decibel_spectrogram=True,)(inputs)
 
     # Swaps order to match the paper?
-    x:Permute = Permute((1,3,2))(x)
+    x:Permute = keras.layers.Permute((1,3,2))(x)
 
     for arch_layer in arch_layers:
         x = keras.layers.Conv2D(arch_layer.filters,
@@ -122,11 +122,10 @@ if __name__ == "__main__":
 
     # set keras image_data_format
     # NOTE: on CPU only `channels_last` is supported
-    data_format: str = os.getenv('IMAGE_DATA_FORMAT', 'channels_last')
+    data_format: str = os.getenv('IMAGE_DATA_FORMAT')
     keras.backend.set_image_data_format(data_format)
 
     arch_layers = layers_map.get(os.getenv('ARCHITECTURE', 'C1'))
-
 
     model: keras.Model = assemble_model(np.zeros([1,n_samples]),
                                         n_outputs=n_outputs,
@@ -149,11 +148,6 @@ if __name__ == "__main__":
     model.fit_generator(generator=training_generator,
                         validation_data=validation_generator,
                         epochs=epochs,)
-
-    # model: keras.Model = fit(model,
-                             #x_train, y_train,
-                             #x_val, y_val,
-                             #epochs=epochs,)
 
     # evaluate prediction on random sample from validation set
     validation_generator.on_epoch_end()
