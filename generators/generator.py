@@ -97,7 +97,8 @@ class DatasetCreator():
         #np.save(self.get_dataset_filename(dataset,"labels"),param_data)
 
     def save_parameters(self):
-        self.parameters.save(self.get_dataset_filename(None,"params",'json'))
+        self.parameters.save_json(self.get_dataset_filename(None,"params",'json'))
+        self.parameters.save(self.get_dataset_filename(None,"params",'pckl'))
 
 
     def get_dataset_filename(self,dataset,type:str,extension:str="txt")->str:

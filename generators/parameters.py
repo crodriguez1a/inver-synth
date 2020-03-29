@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import random
 from pickle import dump
 import math
+import json
 
 """
 A setting for a parameter, with its oneHOT encoding
@@ -34,9 +35,10 @@ class Sample:
         return np.hstack([p.encoding for p in self.parameters])
 
 class Parameter:
-    def __init__(self,name: str, levels: list):
+    def __init__(self,name: str, levels: list,id=""):
         self.name=name
         self.levels = levels
+        self.id=id
 
     def get_levels(self)->List[ParamValue]:
         return [self.get_value(i) for i in range(len(self.levels))]
@@ -65,6 +67,8 @@ class Parameter:
         my_val = self.decode(param_data)
         return (my_val,remaining)
 
+    def to_json(self):
+        return {"name":self.name,"levels":self.levels,"id":self.id}
 
 
 class ParameterSet:
@@ -118,6 +122,12 @@ class ParameterSet:
         with open(filename, 'wb') as file:
             dump(self,file)
 
+    def save_json(self,filename):
+        dump = self.to_json()
+        print(f"Dump: {dump}")
+        with open(filename, 'w') as file:
+            json.dump(dump,file,indent=2)
+
     def explain(self):
         levels = 0
         for p in self.parameters:
@@ -126,6 +136,12 @@ class ParameterSet:
             "n_variable":len(self.parameters),
             "n_fixed":len(self.fixed_parameters),
             "levels":levels
+        }
+
+    def to_json(self):
+        return {
+            "parameters":[p.to_json() for p in self.parameters],
+            "fixed":self.fixed_parameters
         }
 
 """
