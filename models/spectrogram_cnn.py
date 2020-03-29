@@ -60,7 +60,7 @@ def assemble_model(src: np.ndarray,
                                  return_decibel_spectrogram=True,)(inputs)
 
     # Swaps order to match the paper?
-    x:Permute = keras.layers.Permute((1,3,2))(x)
+    x:Permute = keras.layers.Permute((2,1,3))(x)
 
     for arch_layer in arch_layers:
         x = keras.layers.Conv2D(arch_layer.filters,
@@ -94,8 +94,8 @@ if __name__ == "__main__":
             'shuffle': True
             }
 
-    training_generator = SoundDataGenerator(first=0.8, **params)
-    validation_generator = SoundDataGenerator(last=0.2, **params)
+    training_generator = SoundDataGenerator(first=0.8,channels_last=True, **params)
+    validation_generator = SoundDataGenerator(last=0.2,channels_last=True, **params)
 
     n_samples = training_generator.get_audio_length()
     print(f"get_audio_length: {n_samples}")
@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
     # set keras image_data_format
     # NOTE: on CPU only `channels_last` is supported
-    data_format: str = os.getenv('IMAGE_DATA_FORMAT')
+    data_format: str = os.getenv('IMAGE_DATA_FORMAT','channels_last')
     keras.backend.set_image_data_format(data_format)
 
     arch_layers = layers_map.get(os.getenv('ARCHITECTURE', 'C1'))
@@ -154,3 +154,4 @@ if __name__ == "__main__":
     X,y = validation_generator.__getitem__(0)
     prediction: np.ndarray = model.predict(X)
     evaluate(prediction, X, y, parameters)
+    model.save("trained_model.h5")
