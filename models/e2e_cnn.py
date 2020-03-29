@@ -9,6 +9,8 @@ from models.app import summarize_compile, fit, data_format_audio, train_val_spli
 from models.common.utils import utils
 from models.common.architectures import cE2E_1d_layers, cE2E_2d_layers
 
+from models.common.data_generator import SoundDataGenerator
+
 from generators.generator import ParameterSet
 from pickle import load
 
@@ -63,7 +65,10 @@ def assemble_model(src: np.ndarray,
                                 data_format=data_format,)(x)
 
     # @paper: learned representation
-    x = keras.layers.Lambda(lambda x: keras.backend.expand_dims(x, axis=1))(x)
+    # Trying a Reshape instead of Lambda, as it's portable to tfjs
+    #x = keras.layers.Lambda(lambda x: keras.backend.expand_dims(x, axis=3))(x)
+    x = keras.layers.Reshape((61, 257,1), input_shape=(61,257))(x)
+
 
     # @paper:
     # followed by additional six 2D strided convolutional layers that
@@ -91,63 +96,60 @@ def assemble_model(src: np.ndarray,
 
 
 if __name__ == "__main__":
-    # Load audio sample
-    input_audio_path: str = os.getenv('AUDIO_WAV_INPUT')
-    # Define audio sample max duration
-    duration: float = 1
-    # Extract raw audio
-    y_audio, sample_rate = input_raw_audio(input_audio_path, duration=duration)
-
-    # `channels_first` = 1 channel, 1 sample of a signal with length n
-    input_2d: np.ndarray = y_audio[np.newaxis, :]
-
-    # set keras image_data_format
-    data_format: str = 'channels_first'
-    keras.backend.set_image_data_format(data_format)
 
 
-    dataset: str = os.getcwd() + os.getenv('TRAINING_SET')
-    x_train: np.ndarray = np.load(dataset)
-    n_samples: int = x_train.shape[2]
-    n_examples: int = x_train.shape[0]
-    print("Length: {}, number of examples: {}".format(n_samples,n_examples))
+    # TEMP!
 
-    # Load in label data
-    labels: str = os.getcwd() + os.getenv('LABELS')
-    y_train: np.ndarray = np.load(labels)
-    n_labels: int = y_train.shape[1]
-    n_label_examples: int = y_train.shape[0]
-    print("Label Length: {}, number of examples: {}".format(n_labels,n_label_examples))
+    dataset: str = os.getcwd() + "/" + os.getenv('TRAINING_SET')
+    params = {
+            'data_file': dataset,
+            'batch_size': 64,
+            'shuffle': True
+            }
+
+    training_generator = SoundDataGenerator(first=0.8, **params)
+    validation_generator = SoundDataGenerator(last=0.2, **params)
+
+    n_samples = training_generator.get_audio_length()
+    print(f"get_audio_length: {n_samples}")
+    n_outputs = training_generator.get_label_size()
 
     # Parameter data - needed for decoding!
-    param_file: str = os.getcwd() + os.getenv('PARAMETERS')
+    param_file: str = os.getcwd() + "/" + os.getenv('PARAMETERS')
     with open(param_file,'rb') as f:
         parameters : ParameterSet = load(f)
 
-    model: keras.Model = assemble_model(input_2d,
-                                        # np.zeros([1,n_samples]),
-                                        n_labels,
+    # set keras image_data_format
+    # NOTE: on CPU only `channels_last` is supported
+    data_format: str = os.getenv('IMAGE_DATA_FORMAT','channels_last')
+    keras.backend.set_image_data_format(data_format)
+
+    model: keras.Model = assemble_model(np.zeros([n_samples,1]),
+                                        n_outputs,
                                         cE2E_1d_layers,
                                         cE2E_2d_layers,
                                         data_format=data_format,)
 
-    # Reserve samples for validation
-    split: float = .2
-    x_val, y_val, x_train, y_train = train_val_split(x_train, y_train, split)
+
 
     # Summarize and compile the model
     summarize_compile(model)
 
     # Fit, with validation
-    epochs: int = int(os.getenv('EPOCHS', '100'))  # @paper: 100
-    model: keras.Model = fit(model,
-                             x_train, y_train,
-                             x_val, y_val,
-                             epochs=epochs,)
+    epochs: int = int(os.getenv('EPOCHS', 100))  # @paper: 100
 
-    # evaluate prediction on validation set
-    prediction: np.ndarray = model.predict(x_val)
-    evaluate(prediction, x_val, y_val, parameters)
+    # NOTE: `fit_generator` trains the model on data generated
+    # batch-by-batch using `training_generator` (keras.utils.Sequence instance)
+    model.fit_generator(generator=training_generator,
+                        validation_data=validation_generator,
+                        epochs=epochs,)
+
+    # evaluate prediction on random sample from validation set
+    validation_generator.on_epoch_end()
+    X,y = validation_generator.__getitem__(0)
+    prediction: np.ndarray = model.predict(X)
+    evaluate(prediction, X, y, parameters)
+    model.save("trained_e2d_model.h5")
 
     # Save model
     save_path: str = os.getenv('SAVED_MODELS_PATH', '')
