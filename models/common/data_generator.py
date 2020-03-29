@@ -9,13 +9,18 @@ from functools import lru_cache
 class SoundDataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
     def __init__(self, data_file=None, batch_size=32, n_samps=16384,
-                  shuffle=True, last:float=0., first:float=0.):
+                  shuffle=True, last:float=0., first:float=0.,channels_last=False):
         'Initialization'
         self.dim = (1,n_samps)
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.data_file = data_file
         self.n_channels = 1
+        # For the E2E model, need to return channels last?
+        if channels_last:
+            self.expand_axis = 2
+        else:
+            self.expand_axis = 1
 
         database = h5py.File(data_file,"r")
 
@@ -63,6 +68,7 @@ class SoundDataGenerator(keras.utils.Sequence):
         # Generate data
         X, y = self.__data_generation(indexes)
 
+        print("Returning data! Got X: {}, y: {}".format(X.shape,y.shape))
         return X, y
 
     def on_epoch_end(self):
@@ -94,7 +100,7 @@ class SoundDataGenerator(keras.utils.Sequence):
             if data.shape[0] > self.n_samps:
                 print("Warning - too many samples: {} > {}".format(data.shape[0],self.n_samps))
             X.append(data[:self.n_samps])
-        Xd = np.expand_dims(np.vstack(X), axis=1)
+        Xd = np.expand_dims(np.vstack(X), axis=2)
         yd = np.vstack(y)
 
         return Xd, yd
