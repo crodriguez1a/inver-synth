@@ -103,69 +103,13 @@ def get_model(model_name:str,inputs:int,outputs:int,data_format:str='channels_la
                                         data_format=data_format,)
 
 if __name__ == "__main__":
+    from models.runner import standard_run_parser
+    from models.app import train_model
 
+    #Get a standard parser, and the arguments out of it
+    parser = standard_run_parser()
+    args = parser.parse_args()
+    setup = vars(args)
 
-    # TEMP!
-
-    dataset: str = os.getcwd() + "/" + os.getenv('TRAINING_SET')
-    params = {
-            'data_file': dataset,
-            'batch_size': 64,
-            'shuffle': True
-            }
-
-    training_generator = SoundDataGenerator(first=0.8, **params)
-    validation_generator = SoundDataGenerator(last=0.2, **params)
-
-    n_samples = training_generator.get_audio_length()
-    print(f"get_audio_length: {n_samples}")
-    n_outputs = training_generator.get_label_size()
-
-    # Parameter data - needed for decoding!
-    param_file: str = os.getcwd() + "/" + os.getenv('PARAMETERS')
-    with open(param_file,'rb') as f:
-        parameters : ParameterSet = load(f)
-
-    # set keras image_data_format
-    # NOTE: on CPU only `channels_last` is supported
-    data_format: str = os.getenv('IMAGE_DATA_FORMAT','channels_last')
-    keras.backend.set_image_data_format(data_format)
-
-    model: keras.Model = assemble_model(np.zeros([n_samples,1]),
-                                        n_outputs,
-                                        cE2E_1d_layers,
-                                        cE2E_2d_layers,
-                                        data_format=data_format,)
-
-
-
-    # Summarize and compile the model
-    summarize_compile(model)
-
-    # Fit, with validation
-    epochs: int = int(os.getenv('EPOCHS', 100))  # @paper: 100
-
-    #cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath="best_e2e_model.h5",
-                                                 #save_weights_only=False,
-                                                 #save_best_only=True,
-                                                 #verbose=1)
-
-    # NOTE: `fit_generator` trains the model on data generated
-    # batch-by-batch using `training_generator` (keras.utils.Sequence instance)
-    history = model.fit(x=training_generator,
-                        validation_data=validation_generator,
-                        epochs=epochs,)
-
-    hist_df = pd.DataFrame(history.history)
-    with open("e2e_training.csv", mode='w') as f:
-        hist_df.to_csv(f)
-    # evaluate prediction on random sample from validation set
-    validation_generator.on_epoch_end()
-    X,y = validation_generator.__getitem__(0)
-    prediction: np.ndarray = model.predict(X)
-    evaluate(prediction, X, y, parameters)
-    model.save("trained_e2d_model.h5")
-
-    # Save model
-    save_path: str = os.getenv('SAVED_MODELS_PATH', '')
-    utils.h5_save(model, save_path)
+    # Actually train the model
+    train_model(model_callback=get_model,**setup)
