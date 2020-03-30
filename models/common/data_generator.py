@@ -68,7 +68,7 @@ class SoundDataGenerator(keras.utils.Sequence):
         # Generate data
         X, y = self.__data_generation(indexes)
 
-        print("Returning data! Got X: {}, y: {}".format(X.shape,y.shape))
+        #print("Returning data! Got X: {}, y: {}".format(X.shape,y.shape))
         return X, y
 
     def on_epoch_end(self):
