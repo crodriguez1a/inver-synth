@@ -3,6 +3,7 @@ playing/
 test_datasets/*
 test_waves/*
 data/*
+output/
 
 
 # Byte-compiled / optimized / DLL files
