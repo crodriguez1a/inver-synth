@@ -54,13 +54,18 @@ def assemble_model(src: np.ndarray,
     # abs(Spectrogram) in a shape of 2D data, i.e.,
     # `(None, n_channel, n_freq, n_time)` if `'channels_first'`,
     # `(None, n_freq, n_time, n_channel)` if `'channels_last'`,
-    x: Spectrogram = Spectrogram(n_dft=n_dft, n_hop=n_hop, input_shape=src.shape,
+    x = Spectrogram(n_dft=n_dft, n_hop=n_hop, input_shape=src.shape,
                                  trainable_kernel=True, name='static_stft',
                                  image_data_format=data_format,
                                  return_decibel_spectrogram=True,)(inputs)
 
+
     # Swaps order to match the paper?
-    x: Permute = keras.layers.Permute((2, 1, 3))(x)
+    # TODO: dig in to this (GPU only?)
+    if data_format == 'channels_first': # n_channel, n_freq, n_time)
+        x = keras.layers.Permute((1, 3, 2))(x)
+    else:
+        x = keras.layers.Permute((2, 1, 3))(x)
 
     for arch_layer in arch_layers:
         x = keras.layers.Conv2D(arch_layer.filters,
@@ -136,7 +141,7 @@ if __name__ == "__main__":
 
     # set keras image_data_format
     # NOTE: on CPU only `channels_last` is supported
-    data_format: str = os.getenv('IMAGE_DATA_FORMAT', 'channels_last')
+    data_format: str = os.getenv('IMAGE_DATA_FORMAT')
     keras.backend.set_image_data_format(data_format)
 
     arch_layers = layers_map.get(os.getenv('ARCHITECTURE', 'C1'))
