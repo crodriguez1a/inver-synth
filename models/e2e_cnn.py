@@ -68,8 +68,7 @@ def assemble_model(src: np.ndarray,
     # @paper: learned representation
     # Trying a Reshape instead of Lambda, as it's portable to tfjs
     #x = keras.layers.Lambda(lambda x: keras.backend.expand_dims(x, axis=3))(x)
-    x = keras.layers.Reshape((61, 257,1), input_shape=(61,257))(x)
-
+    x = keras.layers.Reshape((61, 257, 1), input_shape=(61, 257))(x)
 
     # @paper:
     # followed by additional six 2D strided convolutional layers that
@@ -95,21 +94,23 @@ def assemble_model(src: np.ndarray,
 
     return keras.Model(inputs=inputs, outputs=outputs)
 
-def get_model(model_name:str,inputs:int,outputs:int,data_format:str='channels_last')->keras.Model:
-    return assemble_model(np.zeros([inputs,1]),
-                                        outputs,
-                                        cE2E_1d_layers,
-                                        cE2E_2d_layers,
-                                        data_format=data_format,)
+
+def get_model(model_name: str, inputs: int, outputs: int, data_format: str = 'channels_last') -> keras.Model:
+    return assemble_model(np.zeros([inputs, 1]),
+                          outputs,
+                          cE2E_1d_layers,
+                          cE2E_2d_layers,
+                          data_format=data_format,)
+
 
 if __name__ == "__main__":
     from models.runner import standard_run_parser
     from models.app import train_model
 
-    #Get a standard parser, and the arguments out of it
+    # Get a standard parser, and the arguments out of it
     parser = standard_run_parser()
     args = parser.parse_args()
     setup = vars(args)
 
     # Actually train the model
-    train_model(model_callback=get_model,**setup)
+    train_model(model_callback=get_model, **setup)

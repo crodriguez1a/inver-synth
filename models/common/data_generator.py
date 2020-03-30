@@ -6,12 +6,14 @@ import h5py
 
 from functools import lru_cache
 
+
 class SoundDataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
+
     def __init__(self, data_file=None, batch_size=32, n_samps=16384,
-                  shuffle=True, last:float=0., first:float=0.,channels_last=False):
+                 shuffle=True, last: float = 0., first: float = 0., channels_last=False):
         'Initialization'
-        self.dim = (1,n_samps)
+        self.dim = (1, n_samps)
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.data_file = data_file
@@ -22,7 +24,7 @@ class SoundDataGenerator(keras.utils.Sequence):
         else:
             self.expand_axis = 1
 
-        database = h5py.File(data_file,"r")
+        database = h5py.File(data_file, "r")
 
         self.database = database
 
@@ -78,13 +80,14 @@ class SoundDataGenerator(keras.utils.Sequence):
             np.random.shuffle(self.indexes)
 
     @lru_cache(maxsize=150000)
-    def read_file(self,index):
+    def read_file(self, index):
         filename = self.database['files'][index]
         fs, data = wavfile.read(filename)
         return data
 
     def __data_generation(self, list_IDs_temp):
-        'Generates data containing batch_size samples' # X : (n_samples, *dim, n_channels)
+        # X : (n_samples, *dim, n_channels)
+        'Generates data containing batch_size samples'
         # Initialization
         #X = np.empty((self.batch_size, *self.dim))
         #y = np.empty((self.batch_size), dtype=int)
@@ -93,12 +96,13 @@ class SoundDataGenerator(keras.utils.Sequence):
         X = []
         y = []
         for i in list_IDs_temp:
-            #Read labels
+            # Read labels
             y.append(self.database['labels'][i])
             # Load soundfile data
             data = self.read_file(i)
             if data.shape[0] > self.n_samps:
-                print("Warning - too many samples: {} > {}".format(data.shape[0],self.n_samps))
+                print(
+                    "Warning - too many samples: {} > {}".format(data.shape[0], self.n_samps))
             X.append(data[:self.n_samps])
         Xd = np.expand_dims(np.vstack(X), axis=2)
         yd = np.vstack(y)
