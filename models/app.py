@@ -1,13 +1,19 @@
 import os
 from tensorflow import keras
+import tensorflow as tf
 # import keras
 import logging
 import numpy as np
 from pathlib import Path
 from dotenv import load_dotenv
+import pandas as pd
+from pickle import load
 
-from typing import Dict, Tuple, Sequence, List
+
+from typing import Dict, Tuple, Sequence, List,Callable
 from generators.generator import *
+from models.common.data_generator import SoundDataGenerator
+
 
 """Dotenv Config"""
 env_path = Path('.') / '.env'
@@ -166,3 +172,103 @@ def data_format_audio(audio: np.ndarray, data_format: str) -> np.ndarray:
         audio = audio[np.newaxis, np.newaxis, :]
 
     return audio
+
+
+"""
+Wrap up the whole training process in a standard function. Gets a callback
+to actually make the model, to keep it as flexible as possible.
+# Params:
+# - dataset_name (dataset name)
+# - model_name: (C1..C6,e2e)
+# - model_callback: function taking name,inputs,outputs,data_format and returning a Keras model
+# - epochs: int
+# - dataset_dir: place to find input data
+# - output_dir: place to put outputs
+# - parameters_file (override parameters filename)
+# - dataset_file (override dataset filename)
+# - data_format (channels_first or channels_last)
+# - run_name: to save this run as
+"""
+
+def train_model(
+        dataset_name:str, model_name:str, epochs:int, model_callback:Callable[[str,int,int,str],keras.Model], #Main options
+        dataset_dir:str, output_dir:str, # Directory names
+        dataset_file:str = None, parameters_file:str = None,
+        run_name:str = None,
+        data_format:str='channels_last',
+        save_best:bool=True ):
+
+    if not dataset_file:
+        dataset_file = os.getcwd() + "/" + dataset_dir + "/" + dataset_name + "_data.hdf5"
+    if not parameters_file:
+        parameters_file = os.getcwd() + "/" + dataset_dir + "/" + dataset_name + "_params.pckl"
+    if not run_name:
+        run_name = dataset_name + "_" + model_name
+
+    model_file = f"{output_dir}/{run_name}.h5"
+    best_model_file = f"{output_dir}/{run_name}_best.h5"
+    history_file = f"{output_dir}/{run_name}.csv"
+
+    gpu_avail = tf.test.is_gpu_available() # True/False
+    cuda_gpu_avail = tf.test.is_gpu_available(cuda_only=True) # True/False
+
+    print("+"*30)
+    print(f"++ {run_name}")
+    print(f"Running model: {model_name} on dataset {dataset_file} (parameters {parameters_file}) for {epochs} epochs")
+    print(f"Saving model in {output_dir} as {model_file}")
+    print(f"Saving history as {history_file}")
+    print(f"GPU: {gpu_avail}, with CUDA: {cuda_gpu_avail}")
+    print("+"*30)
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Get training and validation generators
+    params = { 'data_file': dataset_file, 'batch_size': 64, 'shuffle': True }
+    training_generator = SoundDataGenerator(first=0.8, **params)
+    validation_generator = SoundDataGenerator(last=0.2, **params)
+    n_samples = training_generator.get_audio_length()
+    print(f"get_audio_length: {n_samples}")
+    n_outputs = training_generator.get_label_size()
+
+    # set keras image_data_format
+    # NOTE: on CPU only `channels_last` is supported
+    keras.backend.set_image_data_format(data_format)
+
+    model:keras.Model = model_callback(model_name=model_name,
+            inputs=n_samples,
+            outputs=n_outputs,
+            data_format=data_format)
+
+    # Summarize and compile the model
+    summarize_compile(model)
+
+    callbacks = []
+    cp_callback = keras.callbacks.ModelCheckpoint(filepath=best_model_file,
+                                                 save_weights_only=False,
+                                                 save_best_only=True,
+                                                 verbose=1)
+    if save_best:
+        callbacks.append(cp_callback)
+    # Fit the model
+    history = model.fit(x=training_generator,
+                        validation_data=validation_generator,
+                        epochs=epochs,callbacks=callbacks)
+
+    # Save history
+    hist_df = pd.DataFrame(history.history)
+    with open(history_file,'w') as f:
+        hist_df.to_csv(f)
+
+    # Save model
+    model.save(model_file)
+
+    # evaluate prediction on random sample from validation set
+    # Parameter data - needed for decoding!
+    with open(parameters_file,'rb') as f:
+        parameters : ParameterSet = load(f)
+
+    # Shuffle data
+    validation_generator.on_epoch_end()
+    X,y = validation_generator.__getitem__(0)
+    prediction: np.ndarray = model.predict(X)
+    evaluate(prediction, X, y, parameters)

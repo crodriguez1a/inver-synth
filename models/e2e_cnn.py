@@ -13,6 +13,7 @@ from models.common.data_generator import SoundDataGenerator
 
 from generators.generator import ParameterSet
 from pickle import load
+import pandas as pd
 
 """
 End-to-End learning. A CNN predicts the synthesizer
@@ -94,6 +95,12 @@ def assemble_model(src: np.ndarray,
 
     return keras.Model(inputs=inputs, outputs=outputs)
 
+def get_model(model_name:str,inputs:int,outputs:int,data_format:str='channels_last')->keras.Model:
+    return assemble_model(np.zeros([inputs,1]),
+                                        outputs,
+                                        cE2E_1d_layers,
+                                        cE2E_2d_layers,
+                                        data_format=data_format,)
 
 if __name__ == "__main__":
 
@@ -138,12 +145,20 @@ if __name__ == "__main__":
     # Fit, with validation
     epochs: int = int(os.getenv('EPOCHS', 100))  # @paper: 100
 
+    #cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath="best_e2e_model.h5",
+                                                 #save_weights_only=False,
+                                                 #save_best_only=True,
+                                                 #verbose=1)
+
     # NOTE: `fit_generator` trains the model on data generated
     # batch-by-batch using `training_generator` (keras.utils.Sequence instance)
-    model.fit_generator(generator=training_generator,
+    history = model.fit(x=training_generator,
                         validation_data=validation_generator,
                         epochs=epochs,)
 
+    hist_df = pd.DataFrame(history.history)
+    with open("e2e_training.csv", mode='w') as f:
+        hist_df.to_csv(f)
     # evaluate prediction on random sample from validation set
     validation_generator.on_epoch_end()
     X,y = validation_generator.__getitem__(0)

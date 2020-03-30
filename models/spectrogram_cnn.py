@@ -82,6 +82,17 @@ def assemble_model(src: np.ndarray,
 
     return keras.Model(inputs=inputs, outputs=outputs)
 
+
+"""
+Standard callback to get a model ready to train
+"""
+def get_model(model_name:str,inputs:int,outputs:int,data_format:str='channels_last')->keras.Model:
+    arch_layers = layers_map.get(model_name)
+    return assemble_model(np.zeros([1,inputs]),
+                                        n_outputs=outputs,
+                                        arch_layers=arch_layers,
+                                        data_format=data_format)
+
 if __name__ == "__main__":
 
 
