@@ -29,7 +29,7 @@ def compare( model:keras.Model,
     base_filename = orig_file.replace(".wav",'')
     base_filename = re.sub(r".*/",'',base_filename)
     copy_file:str = f"{output_dir}/{base_filename}_copy.wav"
-    regen_file:str = f"{output_dir}/{base_filename}_regen.wav"
+    regen_file:str = f"{output_dir}/{base_filename}_duplicate.wav"
     reconstruct_file:str = f"{output_dir}/{base_filename}_reconstruct.wav"
     print(f"Creating copy as {copy_file}")
 
@@ -66,6 +66,7 @@ def run_comparison( model:keras.Model,
                 output_dir="./comparison",
                 length = 1.0,
                 sample_rate = 16384,
+                shuffle=True,
                 extra={} ):
     # Figure out data file and params file from run name
     data_file = f"{data_dir}/{run_name}_data.hdf5"
@@ -73,13 +74,13 @@ def run_comparison( model:keras.Model,
     print(f"Reading parameters from {parameters_file}")
     parameters = pickle.load(open(parameters_file,"rb"))
 
+    output_dir = f"{output_dir}/{run_name}/"
     os.makedirs(output_dir,exist_ok=True)
 
     database = h5py.File(data_file,"r")
 
-    shuffle = False
     if not indices:
-        ids = range(len(database['files']))
+        ids = np.array(range(len(database['files'])))
         if shuffle:
             np.random.shuffle(ids)
         indices = ids[0:num_samples]
@@ -102,10 +103,33 @@ def run_comparison( model:keras.Model,
 
 if __name__ == "__main__":
     from generators.fm_generator import *
+    from generators.vst_generator import *
 
-    run_name = "inversynth_small"
-    model_file = "output/inversynth_full_e2e_best.h5"
-    generator = InverSynthGenerator()
+    note_length = 0.8
+    sample_rate = 16384
 
-    model = keras.models.load_model( model_file )
-    run_comparison(model,generator,run_name)
+    lokomotiv = False
+    fm = True
+
+
+    if lokomotiv:
+        run_name = "lokomotiv_full"
+        model_file = "output/lokomotiv_full_e2e_best.h5"
+        plugin = "/Library/Audio/Plug-Ins/VST/Lokomotiv.vst"
+        config_file = "plugin_config/lokomotiv.json"
+        generator = VSTGenerator(vst=plugin, sample_rate = sample_rate)
+        with open(config_file,'r') as f:
+            config = json.load(f)
+
+        model = keras.models.load_model( model_file )
+        run_comparison(model,generator,run_name,num_samples=100,extra={
+            "note_length":note_length,
+            "config":config}
+            )
+
+    if fm:
+        run_name = "inversynth_full"
+        model_file = "output/inversynth_full_e2e_best.h5"
+        generator = InverSynthGenerator()
+        model = keras.models.load_model( model_file )
+        run_comparison(model,generator,run_name,num_samples=100)
