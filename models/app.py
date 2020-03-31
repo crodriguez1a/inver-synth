@@ -10,7 +10,7 @@ import pandas as pd
 from pickle import load
 
 
-from typing import Dict, Tuple, Sequence, List,Callable
+from typing import Dict, Tuple, Sequence, List, Callable
 from generators.generator import *
 from models.common.data_generator import SoundDataGenerator
 
@@ -21,6 +21,7 @@ load_dotenv(dotenv_path=env_path)
 
 
 """Data Utils"""
+
 
 def train_val_split(x_train: np.ndarray,
                     y_train: np.ndarray,
@@ -55,7 +56,7 @@ def summarize_compile(model: keras.Model):
         # https://github.com/tensorflow/tensorflow/issues/9243
         # @paper: 3) Mean Absolute Error based evaluation
         keras.metrics.MeanAbsoluteError(),
-        keras.metrics.CategoricalAccuracy(),])
+        keras.metrics.CategoricalAccuracy(), ])
 
 
 def fit(model: keras.Model,
@@ -85,26 +86,25 @@ def fit(model: keras.Model,
     return model
 
 
-
-def compare(target,prediction,params,precision=1,print_output=False):
+def compare(target, prediction, params, precision=1, print_output=False):
     if print_output and len(prediction) < 10:
         print(prediction)
-        print("Pred: {}".format(np.round(prediction,decimals=2)))
+        print("Pred: {}".format(np.round(prediction, decimals=2)))
         print("PRnd: {}".format(np.round(prediction)))
         print("Act : {}".format(target))
         print("+" * 5)
 
-    pred:List[ParamValue] = params.decode(prediction)
-    act:List[ParamValue] = params.decode(target)
-    pred_index:List[int] = [np.array(p.encoding).argmax() for p in pred]
-    act_index:List[int] = [np.array(p.encoding).argmax() for p in act]
+    pred: List[ParamValue] = params.decode(prediction)
+    act: List[ParamValue] = params.decode(target)
+    pred_index: List[int] = [np.array(p.encoding).argmax() for p in pred]
+    act_index: List[int] = [np.array(p.encoding).argmax() for p in act]
     width = 8
-    names =     "Parameter: "
-    act_s =     "Actual:    "
-    pred_s =    "Predicted: "
-    pred_i =    "Pred. Indx:"
-    act_i =     "Act. Index:"
-    diff_i =    "Index Diff:"
+    names = "Parameter: "
+    act_s = "Actual:    "
+    pred_s = "Predicted: "
+    pred_i = "Pred. Indx:"
+    act_i = "Act. Index:"
+    diff_i = "Index Diff:"
     for p in act:
         names += p.name.rjust(width)[:width]
         act_s += f'{p.value:>8.2f}'
@@ -137,6 +137,7 @@ def compare(target,prediction,params,precision=1,print_output=False):
         print("-" * 30)
     return exact_ratio, close_ratio
 
+
 def evaluate(prediction: np.ndarray,
              x: np.ndarray,
              y: np.ndarray,
@@ -150,16 +151,17 @@ def evaluate(prediction: np.ndarray,
     close_r: float = 0.0
     for i in range(num):
         should_print = i < 5
-        exact,close = compare(target=y[i],prediction=prediction[i],params=params,print_output=should_print)
+        exact, close = compare(
+            target=y[i], prediction=prediction[i], params=params, print_output=should_print)
         if exact == 1.0:
             correct = correct + 1
         correct_r += exact
         close_r += close
     summary = params.explain()
     print("{} Parameters with {} levels (fixed: {})".format(
-        summary['n_variable'],summary['levels'],summary['n_fixed']))
+        summary['n_variable'], summary['levels'], summary['n_fixed']))
     print("Got {} out of {} ({:.1f}% perfect); Exact params: {:.1f}%, Close params: {:.1f}%".format(
-        correct,num, correct/num * 100, correct_r/num * 100, close_r/num * 100 ))
+        correct, num, correct/num * 100, correct_r/num * 100, close_r/num * 100))
 
 
 def data_format_audio(audio: np.ndarray, data_format: str) -> np.ndarray:
@@ -190,18 +192,22 @@ to actually make the model, to keep it as flexible as possible.
 # - run_name: to save this run as
 """
 
+
 def train_model(
-        dataset_name:str, model_name:str, epochs:int, model_callback:Callable[[str,int,int,str],keras.Model], #Main options
-        dataset_dir:str, output_dir:str, # Directory names
-        dataset_file:str = None, parameters_file:str = None,
-        run_name:str = None,
-        data_format:str='channels_last',
-        save_best:bool=True ):
+        # Main options
+        dataset_name: str, model_name: str, epochs: int, model_callback: Callable[[str, int, int, str], keras.Model],
+        dataset_dir: str, output_dir: str,  # Directory names
+        dataset_file: str = None, parameters_file: str = None,
+        run_name: str = None,
+        data_format: str = 'channels_last',
+        save_best: bool = True):
 
     if not dataset_file:
-        dataset_file = os.getcwd() + "/" + dataset_dir + "/" + dataset_name + "_data.hdf5"
+        dataset_file = os.getcwd() + "/" + dataset_dir + "/" + \
+            dataset_name + "_data.hdf5"
     if not parameters_file:
-        parameters_file = os.getcwd() + "/" + dataset_dir + "/" + dataset_name + "_params.pckl"
+        parameters_file = os.getcwd() + "/" + dataset_dir + "/" + \
+            dataset_name + "_params.pckl"
     if not run_name:
         run_name = dataset_name + "_" + model_name
 
@@ -209,12 +215,13 @@ def train_model(
     best_model_file = f"{output_dir}/{run_name}_best.h5"
     history_file = f"{output_dir}/{run_name}.csv"
 
-    gpu_avail = tf.test.is_gpu_available() # True/False
-    cuda_gpu_avail = tf.test.is_gpu_available(cuda_only=True) # True/False
+    gpu_avail = tf.test.is_gpu_available()  # True/False
+    cuda_gpu_avail = tf.test.is_gpu_available(cuda_only=True)  # True/False
 
     print("+"*30)
     print(f"++ {run_name}")
-    print(f"Running model: {model_name} on dataset {dataset_file} (parameters {parameters_file}) for {epochs} epochs")
+    print(
+        f"Running model: {model_name} on dataset {dataset_file} (parameters {parameters_file}) for {epochs} epochs")
     print(f"Saving model in {output_dir} as {model_file}")
     print(f"Saving history as {history_file}")
     print(f"GPU: {gpu_avail}, with CUDA: {cuda_gpu_avail}")
@@ -223,7 +230,7 @@ def train_model(
     os.makedirs(output_dir, exist_ok=True)
 
     # Get training and validation generators
-    params = { 'data_file': dataset_file, 'batch_size': 64, 'shuffle': True }
+    params = {'data_file': dataset_file, 'batch_size': 64, 'shuffle': True}
     training_generator = SoundDataGenerator(first=0.8, **params)
     validation_generator = SoundDataGenerator(last=0.2, **params)
     n_samples = training_generator.get_audio_length()
@@ -234,29 +241,29 @@ def train_model(
     # NOTE: on CPU only `channels_last` is supported
     keras.backend.set_image_data_format(data_format)
 
-    model:keras.Model = model_callback(model_name=model_name,
-            inputs=n_samples,
-            outputs=n_outputs,
-            data_format=data_format)
+    model: keras.Model = model_callback(model_name=model_name,
+                                        inputs=n_samples,
+                                        outputs=n_outputs,
+                                        data_format=data_format)
 
     # Summarize and compile the model
     summarize_compile(model)
 
     callbacks = []
     cp_callback = keras.callbacks.ModelCheckpoint(filepath=best_model_file,
-                                                 save_weights_only=False,
-                                                 save_best_only=True,
-                                                 verbose=1)
+                                                  save_weights_only=False,
+                                                  save_best_only=True,
+                                                  verbose=1)
     if save_best:
         callbacks.append(cp_callback)
     # Fit the model
     history = model.fit(x=training_generator,
                         validation_data=validation_generator,
-                        epochs=epochs,callbacks=callbacks)
+                        epochs=epochs, callbacks=callbacks)
 
     # Save history
     hist_df = pd.DataFrame(history.history)
-    with open(history_file,'w') as f:
+    with open(history_file, 'w') as f:
         hist_df.to_csv(f)
 
     # Save model
@@ -264,11 +271,11 @@ def train_model(
 
     # evaluate prediction on random sample from validation set
     # Parameter data - needed for decoding!
-    with open(parameters_file,'rb') as f:
-        parameters : ParameterSet = load(f)
+    with open(parameters_file, 'rb') as f:
+        parameters: ParameterSet = load(f)
 
     # Shuffle data
     validation_generator.on_epoch_end()
-    X,y = validation_generator.__getitem__(0)
+    X, y = validation_generator.__getitem__(0)
     prediction: np.ndarray = model.predict(X)
     evaluate(prediction, X, y, parameters)

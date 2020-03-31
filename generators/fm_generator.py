@@ -8,14 +8,12 @@ from synthplayer.synth import *
 from synthplayer.oscillators import *
 
 
-
-
 class SynthplayerGenerator(SoundGenerator):
     def do_generate(self,parameters:dict,filename:str,length:float,sample_rate:int,extra:dict={})->np.ndarray:
         n_samps = int(length * sample_rate)
         data = []
 
-        osc = self.construct_generator(sample_rate,parameters,extra)
+        osc = self.construct_generator(sample_rate, parameters, extra)
         gen = osc.blocks()
         while len(data) < n_samps:
             data.extend(next(gen))
@@ -24,16 +22,19 @@ class SynthplayerGenerator(SoundGenerator):
     """
     Simple example generator - two sine waves, amp and frequency
     """
-    def construct_generator(self,sample_rate:int,parameters:dict,extra:dict):
+
+    def construct_generator(self, sample_rate: int, parameters: dict, extra: dict):
         s1 = Sine(parameters['f1'], amplitude=parameters['a1'])
         s2 = Sine(parameters['f2'], amplitude=parameters['a2'])
-        return MixingFilter(s1,s2)
+        return MixingFilter(s1, s2)
+
 
 class InverSynthGenerator(SynthplayerGenerator):
     """
     Current best attempt to recreate the generator in the paper
     """
-    def construct_generator(self,sample_rate:int,parameters:dict,extra:dict):
+
+    def construct_generator(self, sample_rate: int, parameters: dict, extra: dict):
         """
         Paper
         #f,v,A,B are the carrier frequency, modulation frequency,
@@ -58,7 +59,7 @@ class InverSynthGenerator(SynthplayerGenerator):
         lfo4 = Sine(p['v4'], amplitude=p['B4'], samplerate=sample_rate)
         s4 = Square(p['f4'], amplitude=p['A4'], fm_lfo=lfo4)
 
-        y_osc = MixingFilter(s1,s2,s3,s4)
+        y_osc = MixingFilter(s1, s2, s3, s4)
 
         """
         a (Attack) is the time taken for initial run-up of level from zero to peak,
@@ -71,11 +72,11 @@ class InverSynthGenerator(SynthplayerGenerator):
         level to zero after the key is released.
         """
         y_env = EnvelopeFilter(y_osc,
-            attack=p['attack'],
-            decay=p['decay'],
-            sustain=p['sustain_time'],
-            sustain_level=p['sustain'],
-            release=p['release'])
+                               attack=p['attack'],
+                               decay=p['decay'],
+                               sustain=p['sustain_time'],
+                               sustain_level=p['sustain'],
+                               release=p['release'])
 
         """
         filter y_lp(𝑥, f_cut, q) that consists of a low-pass
@@ -92,7 +93,6 @@ class InverSynthGenerator(SynthplayerGenerator):
         return y_gate
 
 
-
 if __name__ == "__main__":
     import json
     gen = InverSynthGenerator()
@@ -107,25 +107,25 @@ if __name__ == "__main__":
     * resonance q in [0.01, 10]
     """
     search_parameters = [
-        Parameter("f1",freq_range(16)),
-        Parameter("v1",param_range(16,1,30)),
-        Parameter("A1",param_range(16,0., 1.)),
-        Parameter("B1",param_range(16,0., 1.5)),
+        Parameter("f1", freq_range(16)),
+        Parameter("v1", param_range(16, 1, 30)),
+        Parameter("A1", param_range(16, 0., 1.)),
+        Parameter("B1", param_range(16, 0., 1.5)),
 
-        Parameter("f2",freq_range(16)),
-        Parameter("v2",param_range(16,1,30)),
-        Parameter("A2",param_range(16,0., 1.)),
-        Parameter("B2",param_range(16,0., 1.5)),
+        Parameter("f2", freq_range(16)),
+        Parameter("v2", param_range(16, 1, 30)),
+        Parameter("A2", param_range(16, 0., 1.)),
+        Parameter("B2", param_range(16, 0., 1.5)),
 
-        Parameter("f3",freq_range(16)),
-        Parameter("v3",param_range(16,1,30)),
-        Parameter("A3",param_range(16,0., 1.)),
-        Parameter("B3",param_range(16,0., 1.5)),
+        Parameter("f3", freq_range(16)),
+        Parameter("v3", param_range(16, 1, 30)),
+        Parameter("A3", param_range(16, 0., 1.)),
+        Parameter("B3", param_range(16, 0., 1.5)),
 
-        Parameter("f4",freq_range(16)),
-        Parameter("v4",param_range(16,1,30)),
-        Parameter("A4",param_range(16,0., 1.)),
-        Parameter("B4",param_range(16,0., 1.5)),
+        Parameter("f4", freq_range(16)),
+        Parameter("v4", param_range(16, 1, 30)),
+        Parameter("A4", param_range(16, 0., 1.)),
+        Parameter("B4", param_range(16, 0., 1.5)),
 
         #Parameter("attack",[0., 0.1, 0.2]),
         #Parameter("decay",[0., 0.1, 0.2]),
@@ -136,40 +136,40 @@ if __name__ == "__main__":
     ]
     # Sensible defaults for everything...
     fixed_parameters = {
-        "f1":100,
-        "v1":1,
-        "A1":1.0,
-        "B1":0.0,
+        "f1": 100,
+        "v1": 1,
+        "A1": 1.0,
+        "B1": 0.0,
 
-        "f2":100,
-        "v2":1,
-        "A2":0.0,
-        "B2":0.0,
+        "f2": 100,
+        "v2": 1,
+        "A2": 0.0,
+        "B2": 0.0,
 
-        "f3":100,
-        "v3":1,
-        "A3":0.0,
-        "B3":0.0,
+        "f3": 100,
+        "v3": 1,
+        "A3": 0.0,
+        "B3": 0.0,
 
-        "f4":100,
-        "v4":1,
-        "A4":0.0,
-        "B4":0.0,
+        "f4": 100,
+        "v4": 1,
+        "A4": 0.0,
+        "B4": 0.0,
 
-        "attack":0.1,
-        "decay":0.3,
-        "sustain_time":0.5,
-        "sustain":1.,
-        "release":0.2,
+        "attack": 0.1,
+        "decay": 0.3,
+        "sustain_time": 0.5,
+        "sustain": 1.,
+        "release": 0.2,
     }
     print("-"*30)
     print("Search parameters:")
     for p in search_parameters:
-        print("-- {}: {}".format(p.name,p.levels))
+        print("-- {}: {}".format(p.name, p.levels))
     print("-"*30)
-    parameters=ParameterSet(
-        parameters = search_parameters,
-        fixed_parameters = fixed_parameters
+    parameters = ParameterSet(
+        parameters=search_parameters,
+        fixed_parameters=fixed_parameters
     )
     g = DatasetCreator("inversynth_tiny",
         dataset_dir="test_datasets",

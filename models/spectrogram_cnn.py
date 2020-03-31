@@ -40,10 +40,10 @@ def input_raw_audio(path: str, sr: int = 16384, duration: float = 1.) -> tuple:
 
 
 def assemble_model(src: np.ndarray,
-                   n_outputs:int,
+                   n_outputs: int,
                    arch_layers: list,
-                   n_dft: int = 512, # Orig:128
-                   n_hop: int = 256, # Orig:64
+                   n_dft: int = 512,  # Orig:128
+                   n_hop: int = 256,  #  Orig:64
                    data_format: str = 'channels_first',) -> keras.Model:
 
     inputs = keras.Input(shape=src.shape, name='stft')
@@ -54,13 +54,18 @@ def assemble_model(src: np.ndarray,
     # abs(Spectrogram) in a shape of 2D data, i.e.,
     # `(None, n_channel, n_freq, n_time)` if `'channels_first'`,
     # `(None, n_freq, n_time, n_channel)` if `'channels_last'`,
-    x: Spectrogram = Spectrogram(n_dft=n_dft, n_hop=n_hop, input_shape=src.shape,
+    x = Spectrogram(n_dft=n_dft, n_hop=n_hop, input_shape=src.shape,
                                  trainable_kernel=True, name='static_stft',
                                  image_data_format=data_format,
                                  return_decibel_spectrogram=True,)(inputs)
 
+
     # Swaps order to match the paper?
-    x:Permute = keras.layers.Permute((2,1,3))(x)
+    # TODO: dig in to this (GPU only?)
+    if data_format == 'channels_first': # n_channel, n_freq, n_time)
+        x = keras.layers.Permute((1, 3, 2))(x)
+    else:
+        x = keras.layers.Permute((2, 1, 3))(x)
 
     for arch_layer in arch_layers:
         x = keras.layers.Conv2D(arch_layer.filters,
@@ -86,27 +91,31 @@ def assemble_model(src: np.ndarray,
 """
 Standard callback to get a model ready to train
 """
-def get_model(model_name:str,inputs:int,outputs:int,data_format:str='channels_last')->keras.Model:
+
+
+def get_model(model_name: str, inputs: int, outputs: int, data_format: str = 'channels_last') -> keras.Model:
     arch_layers = layers_map.get(model_name)
-    return assemble_model(np.zeros([1,inputs]),
-                                        n_outputs=outputs,
-                                        arch_layers=arch_layers,
-                                        data_format=data_format)
+    return assemble_model(np.zeros([1, inputs]),
+                          n_outputs=outputs,
+                          arch_layers=arch_layers,
+                          data_format=data_format)
+
 
 if __name__ == "__main__":
-
 
     # TEMP!
 
     dataset: str = os.getcwd() + "/" + os.getenv('TRAINING_SET')
     params = {
-            'data_file': dataset,
-            'batch_size': 64,
-            'shuffle': True
-            }
+        'data_file': dataset,
+        'batch_size': 64,
+        'shuffle': True
+    }
 
-    training_generator = SoundDataGenerator(first=0.8,channels_last=True, **params)
-    validation_generator = SoundDataGenerator(last=0.2,channels_last=True, **params)
+    training_generator = SoundDataGenerator(
+        first=0.8, channels_last=True, **params)
+    validation_generator = SoundDataGenerator(
+        last=0.2, channels_last=True, **params)
 
     n_samples = training_generator.get_audio_length()
     print(f"get_audio_length: {n_samples}")
@@ -125,20 +134,19 @@ if __name__ == "__main__":
     # n_label_examples: int = y_train.shape[0]
     # print("Label Length: {}, number of examples: {}".format(n_labels,n_label_examples))
 
-
     # Parameter data - needed for decoding!
     param_file: str = os.getcwd() + "/" + os.getenv('PARAMETERS')
-    with open(param_file,'rb') as f:
-        parameters : ParameterSet = load(f)
+    with open(param_file, 'rb') as f:
+        parameters: ParameterSet = load(f)
 
     # set keras image_data_format
     # NOTE: on CPU only `channels_last` is supported
-    data_format: str = os.getenv('IMAGE_DATA_FORMAT','channels_last')
+    data_format: str = os.getenv('IMAGE_DATA_FORMAT')
     keras.backend.set_image_data_format(data_format)
 
     arch_layers = layers_map.get(os.getenv('ARCHITECTURE', 'C1'))
 
-    model: keras.Model = assemble_model(np.zeros([1,n_samples]),
+    model: keras.Model = assemble_model(np.zeros([1, n_samples]),
                                         n_outputs=n_outputs,
                                         arch_layers=arch_layers,
                                         data_format=data_format)
@@ -162,7 +170,7 @@ if __name__ == "__main__":
 
     # evaluate prediction on random sample from validation set
     validation_generator.on_epoch_end()
-    X,y = validation_generator.__getitem__(0)
+    X, y = validation_generator.__getitem__(0)
     prediction: np.ndarray = model.predict(X)
     evaluate(prediction, X, y, parameters)
     model.save("trained_model.h5")
