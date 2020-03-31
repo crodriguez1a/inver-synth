@@ -214,6 +214,7 @@ def train_model(
     model_file = f"{output_dir}/{run_name}.h5"
     best_model_file = f"{output_dir}/{run_name}_best.h5"
     history_file = f"{output_dir}/{run_name}.csv"
+    history_graph_file = f"{output_dir}/{run_name}.pdf"
 
     gpu_avail = tf.test.is_gpu_available()  # True/False
     cuda_gpu_avail = tf.test.is_gpu_available(cuda_only=True)  # True/False
@@ -262,9 +263,21 @@ def train_model(
                         epochs=epochs, callbacks=callbacks)
 
     # Save history
-    hist_df = pd.DataFrame(history.history)
-    with open(history_file, 'w') as f:
-        hist_df.to_csv(f)
+    try:
+        hist_df = pd.DataFrame(history.history)
+        with open(history_file, 'w') as f:
+            hist_df.to_csv(f)
+        try:
+            fig = hist_df.plot(subplots=True,figsize=(8,25))
+            fig[0].get_figure().savefig(history_graph_file)
+        except Exception as e:
+            print("Couldn't create history graph")
+            print(e)
+
+    except Exception as e:
+        print("Couldn't save history")
+        print(e)
+
 
     # Save model
     model.save(model_file)
