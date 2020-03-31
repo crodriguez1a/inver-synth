@@ -77,7 +77,8 @@ class SoundDataGenerator(keras.utils.Sequence):
         if self.shuffle == True:
             np.random.shuffle(self.indexes)
 
-    @lru_cache(maxsize=150000)
+    # Think this makes things worse - fills up memory
+    #@lru_cache(maxsize=150000)
     def read_file(self,index):
         filename = self.database['files'][index]
         fs, data = wavfile.read(filename)
