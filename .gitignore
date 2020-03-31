@@ -6,6 +6,9 @@ data/*
 output/
 comparison/
 
+# To preserve file for Dave :/
+librenderman.so
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
