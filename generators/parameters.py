@@ -109,6 +109,12 @@ class ParameterSet:
         params.update(dict(p.value_list()))
         return params
 
+    def encoding_to_settings(self,output:List[float])->Dict[str,float]:
+        params = self.fixed_parameters.copy()
+        for p in self.decode(output):
+            params[p.name] = p.value
+        return params
+
     def decode(self,output:List[float])->List[ParamValue]:
         values = []
         for p in self.parameters:
