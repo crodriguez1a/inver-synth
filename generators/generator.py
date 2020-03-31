@@ -15,12 +15,33 @@ custom synthesis, VST plugins)
 """
 
 class SoundGenerator:
-    def generate(self,parameters:dict,filename:str,length:float,sample_rate:int)->np.ndarray:
+    """
+    This is now a wrapper round the 'real' generation function
+    to handle normalising and saving
+    """
+    def generate(self,parameters:dict,filename:str,length:float,sample_rate:int,extra:dict)->np.ndarray:
+        audio = self.do_generate(parameters,filename,length,sample_rate,extra)
+        if self.normalise():
+            max = np.max(np.absolute(audio))
+            if max > 0:
+                audio = audio / max
+        if not self.creates_wave_file():
+            self.write_file(audio,filename,sample_rate)
+
+    def do_generate(self,parameters:dict,filename:str,length:float,sample_rate:int,extra:dict)->np.ndarray:
         print("Someone needs to write this method! Generating silence in {} with parameters:{}".format(filename,str(parameters)))
         return np.zeros(int(length*sample_rate))
 
     def creates_wave_file(self)->bool:
         return False
+
+    def normalise(self):
+        return True
+
+    # Assumes that the data is -1..1 floating point
+    def write_file(self,data : np.ndarray,filename:str,sample_rate:int):
+        int_data = (data * np.iinfo(np.int16).max).astype(int)
+        write_wav(filename, sample_rate, data)
 
 
 """
@@ -60,20 +81,13 @@ class DatasetCreator():
 
         for p in dataset:
             params = self.parameters.to_settings(p)
+            filename = self.get_wave_filename(self.index)
             audio = sound_generator.generate(
-                params,self.get_wave_filename(self.index),
+                params,filename,
                 length, sample_rate, extra)
 
-            if self.normalise:
-                max = np.max(np.absolute(audio))
-                if max > 0:
-                    audio = audio / max
-
-            filename = self.get_wave_filename(self.index)
             filenames[self.index] = filename
             labels[self.index] = p.encode()
-            if not sound_generator.creates_wave_file():
-                self.write_file(audio,self.get_wave_filename(self.index),sample_rate)
             if self.index % 1000 == 0:
                 print("Generating example {}".format(self.index))
             self.index = self.index + 1
@@ -108,10 +122,7 @@ class DatasetCreator():
         return "{}/{}_{:05d}.wav".format(self.wave_file_dir,self.name,index)
 
 
-    # Assumes that the data is -1..1 floating point
-    def write_file(self,data : np.ndarray,filename:str,sample_rate:int):
-        int_data = (data * np.iinfo(np.int16).max).astype(int)
-        write_wav(filename, sample_rate, data)
+
 
 
 

@@ -11,7 +11,7 @@ from synthplayer.oscillators import *
 
 
 class SynthplayerGenerator(SoundGenerator):
-    def generate(self,parameters:dict,filename:str,length:float,sample_rate:int,extra:dict={})->np.ndarray:
+    def do_generate(self,parameters:dict,filename:str,length:float,sample_rate:int,extra:dict={})->np.ndarray:
         n_samps = int(length * sample_rate)
         data = []
 
@@ -171,9 +171,9 @@ if __name__ == "__main__":
         parameters = search_parameters,
         fixed_parameters = fixed_parameters
     )
-    g = DatasetCreator("inversynth_full",
+    g = DatasetCreator("inversynth_tiny",
         dataset_dir="test_datasets",
-        wave_file_dir="test_waves/inversynth_full/",
+        wave_file_dir="test_waves/inversynth_tiny/",
         parameters=parameters
     )
-    g.generate(sound_generator=gen,length=1,sample_rate=16384,method="random",max=40000)
+    g.generate(sound_generator=gen,length=1,sample_rate=16384,method="random",max=40)

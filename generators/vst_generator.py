@@ -32,7 +32,7 @@ class VSTGenerator(SoundGenerator):
             print("Problem: {}".format(e))
 
     #def do_sound_generation(self,parameter_set,base_filename)->np.ndarray:
-    def generate(self,parameters:dict,filename:str,length:float,sample_rate:int,extra:dict={})->np.ndarray:
+    def do_generate(self,parameters:dict,filename:str,length:float,sample_rate:int,extra:dict={})->np.ndarray:
         if not self.engine:
             print("VST not loaded")
             return np.zeros(5)
@@ -114,7 +114,7 @@ def run_generator(name:str,plugin:str,config:str,max:int,
     with open(config,'r') as f:
         config = json.load(f)
 
-    sample = [Parameter(p['name'],p['values']) for p in config['parameters']]
+    sample = [Parameter(p['name'],p['values'],p.get('id',"")) for p in config['parameters']]
     fixed = dict([(p['name'],p['value']) for p in config['fixed_parameters']])
     parameters=ParameterSet(
         parameters = sample,
