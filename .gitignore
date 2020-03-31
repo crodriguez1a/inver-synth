@@ -4,6 +4,7 @@ test_datasets/*
 test_waves/*
 data/*
 output/
+comparison/
 
 
 # Byte-compiled / optimized / DLL files
