@@ -102,17 +102,16 @@ def run_comparison( model:keras.Model,
     # Generate
 
 if __name__ == "__main__":
-    from generators.fm_generator import *
-    from generators.vst_generator import *
 
     note_length = 0.8
     sample_rate = 16384
 
-    lokomotiv = False
+    lokomotiv = True
     fm = True
 
 
     if lokomotiv:
+        from generators.vst_generator import *
         run_name = "lokomotiv_full"
         model_file = "output/lokomotiv_full_e2e_best.h5"
         plugin = "/Library/Audio/Plug-Ins/VST/Lokomotiv.vst"
@@ -128,6 +127,7 @@ if __name__ == "__main__":
             )
 
     if fm:
+        from generators.fm_generator import *
         run_name = "inversynth_full"
         model_file = "output/inversynth_full_e2e_best.h5"
         generator = InverSynthGenerator()
