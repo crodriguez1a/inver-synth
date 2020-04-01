@@ -52,3 +52,5 @@ wheel==0.34.2 ; python_version >= '3'
 wrapt==1.12.1
 dataclasses
 matplotlib
+synthplayer
+pandas
