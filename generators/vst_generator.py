@@ -103,37 +103,28 @@ class VSTGenerator(SoundGenerator):
 
 
 # Run the generator to create a full dataset
-def run_generator(name: str, plugin: str, config: str, max: int,
-                  dataset_directory: str, wavefile_directory: str,
-                  sample_rate: int = 16384, length: float = 1.0, note_length: float = -1, method: str = 'random'):
+def run_generator(args):#name: str, plugin: str, config: str, max: int,
+                  #dataset_directory: str, wavefile_directory: str,
+                  #sample_rate: int = 16384, length: float = 1.0, note_length: float = -1, method: str = 'random'):
 
-    print("+"*50)
-    print("Running generator '{}' to create {} points\n VST: {}\n Config: {}\n Dataset dir: {}\n Wave dir: {}".format(
-        name, max, plugin, config, dataset_directory, wavefile_directory))
-    gen = VSTGenerator(vst=plugin, sample_rate=sample_rate)
-
+    note_length = args.note_length
     if note_length < 0.0:
         note_length = length * 0.8
 
-    with open(config, 'r') as f:
+    with open(args.config_file, 'r') as f:
         config = json.load(f)
-
     sample = [Parameter(p['name'],p['values'],p.get('id',"")) for p in config['parameters']]
     fixed = dict([(p['name'],p['value']) for p in config['fixed_parameters']])
-    parameters=ParameterSet(
-        parameters = sample,
-        fixed_parameters = fixed
+
+    generate_examples(
+        gen = VSTGenerator(vst=args.plugin, sample_rate=args.sample_rate),
+        parameters=ParameterSet(
+            parameters = sample,
+            fixed_parameters = fixed
+        ),
+        args = args,
+        extra={'note_length': note_length, 'config': config}
     )
-    g = DatasetCreator(name,
-                       dataset_dir=dataset_directory,
-                       wave_file_dir=wavefile_directory,
-                       parameters=parameters
-                       )
-    print("+"*50)
-    print("Starting Generation")
-    g.generate(sound_generator=gen, length=length, sample_rate=sample_rate,
-               method=method, max=max, extra={'note_length': note_length, 'config': config})
-    print("+"*50)
 
 
 # Create blank config file based on the plugin's parameter sets
@@ -146,31 +137,28 @@ def generate_defaults(plugin: str, output: str, default: float = 0.5):
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    #parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = default_generator_argparse()
     parser.add_argument('command',  type=str, choices=['run', 'generate'],
                         help='action to take: run (run the generator with a config) or generate (generate a blank config file for the plugin)')
-    parser.add_argument('--plugin', dest='plugin', action='store',
+    parser.add_argument('--plugin', dest='plugin',
                         help='plugin file. .so on linux, on mac its the top level plugin dir, e.g. "/Library/Audio/Plug-Ins/VST/Lokomotiv.vst"')
-    parser.add_argument('--output', dest='outfile', action='store',
-                        help='Place to store the output file')
-    parser.add_argument('--config', dest='config_file', action='store',
+    parser.add_argument('--output', dest='outfile',
+                        help='Place to store the generated parameters file')
+    parser.add_argument('--config', dest='config_file',
                         help='Config file to use')
-    parser.add_argument('--num_examples', type=int, dest='samples', action='store', default=50,
-                        help='Number of examples to create')
-    parser.add_argument('--dataset_name', type=str, dest='name', action='store', default='unknown',
-                        help='Name of datasets to create')
-    parser.add_argument('--dataset_directory', type=str, dest='data_dir', action='store', default='test_datasets',
-                        help='Directory to put datasets')
-    parser.add_argument('--wavefile_directory', type=str, dest='wave_dir', action='store', default='test_waves/unknown/',
-                        help='Directory to put wave files')
     parser.add_argument('--default_value', type=float, dest='default_param', action='store', default=0.5,
                         help='Default setting for parameters when generating a blank config')
+    parser.add_argument('--note_length', type=float, dest='note_length', default=0.8,
+                        help='Length of a note in seconds')
 
     args = parser.parse_args()
     print(args)
     if args.command == 'run':
-        run_generator(args.name, args.plugin, args.config_file,
-                      args.samples, args.data_dir, args.wave_dir)
+        run_generator(args)
+        #args.name, args.plugin, args.config_file,
+        #          args.samples, args.data_dir, args.wave_dir)
+
         pass
     if args.command == 'generate':
         generate_defaults(args.plugin, args.outfile, args.default_param)

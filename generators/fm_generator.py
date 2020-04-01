@@ -95,11 +95,7 @@ class InverSynthGenerator(SynthplayerGenerator):
 
 if __name__ == "__main__":
     import json
-    import argparse
-    parser = default_generator_argparse()
-    args = parser.parse_args()
 
-    gen = InverSynthGenerator()
     """
     * amplitudes are in [0.001, 1]
     * ADSR envelope parameters a, d, s, r are in [0.001, 1]
@@ -171,17 +167,11 @@ if __name__ == "__main__":
     for p in search_parameters:
         print("-- {}: {}".format(p.name, p.levels))
     print("-"*30)
-    parameters = ParameterSet(
-        parameters=search_parameters,
-        fixed_parameters=fixed_parameters
+    
+    generate_examples(
+        gen = InverSynthGenerator(),
+        parameters = ParameterSet(
+            parameters=search_parameters,
+            fixed_parameters=fixed_parameters
+        )
     )
-    g = DatasetCreator(name=args.name,
-        dataset_dir=args.data_dir,
-        wave_file_dir=args.wave_dir,
-        parameters=parameters
-    )
-    g.generate(sound_generator=gen,
-                length=args.length,
-                sample_rate=args.sample_rate,
-                method=args.method,
-                max=args.samples)

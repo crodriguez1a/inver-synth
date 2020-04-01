@@ -61,5 +61,5 @@ want to learn.
 ## Generate Dataset
 Using the `run` command, generate the dataset:
 ```
-python -m generators.vst_generator run --plugin /Library/Audio/Plug-Ins/VST/Lokomotiv.vst --config plugin_config/lokomotiv.json --dataset_name explore --wavefile_directory "test_waves/explore"
+python -m generators.vst_generator run --plugin /Library/Audio/Plug-Ins/VST/Lokomotiv.vst --config plugin_config/lokomotiv.json --name lokomotiv_tiny
 ```

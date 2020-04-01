@@ -148,7 +148,22 @@ def default_generator_argparse():
                         help='Method to use for generating examples. Currently only random, but may include whole space later')
     return parser
 
+def generate_examples(gen:SoundGenerator,parameters:ParameterSet,args=None,extra={}):
+    if not args:
+        parser = default_generator_argparse()
+        args = parser.parse_args()
 
+    g = DatasetCreator(name=args.name,
+        dataset_dir=args.data_dir,
+        wave_file_dir=args.wave_dir,
+        parameters=parameters
+    )
+    g.generate(sound_generator=gen,
+                length=args.length,
+                sample_rate=args.sample_rate,
+                method=args.method,
+                max=args.samples,
+                extra=extra)
 
 if __name__ == "__main__":
     gen = SoundGenerator()
