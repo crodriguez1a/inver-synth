@@ -130,7 +130,6 @@ class ParameterSet:
 
     def save_json(self, filename):
         dump = self.to_json()
-        print(f"Dump: {dump}")
         with open(filename, 'w') as file:
             json.dump(dump, file, indent=2)
 
