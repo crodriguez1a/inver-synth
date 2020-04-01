@@ -6,6 +6,7 @@ from typing import Dict, Tuple, Sequence, List
 import random
 import os
 import h5py
+import argparse
 
 from generators.parameters import *
 
@@ -60,10 +61,14 @@ class DatasetCreator():
         self.index = 0
         self.normalise = normalise
         os.makedirs(dataset_dir, exist_ok=True)
-        os.makedirs(wave_file_dir, exist_ok=True)
+        os.makedirs(f"{wave_file_dir}/{name}", exist_ok=True)
 
     def generate(self, sound_generator: SoundGenerator, length: float = 0.1,
                  sample_rate: int = 44100, max: int = 10, method: str = 'complete', extra: dict = {}):
+        print("+"*40)
+        print(f"Generating Dataset {self.name}, {max} files of {length}s at {sample_rate}/s")
+        print(f"Output waves: {self.wave_file_dir}, datasets: {self.dataset_dir}")
+        print("+"*40)
         self.index = 0
         dataset: List[Sample] = []
         if method == "complete":
@@ -120,11 +125,28 @@ class DatasetCreator():
         self.parameters.save(self.get_dataset_filename(None, "params", 'pckl'))
 
     def get_dataset_filename(self, dataset, type: str, extension: str = "txt") -> str:
-        return "{}/{}_{}.{}".format(self.dataset_dir, self.name, type, extension)
+        return f"{self.dataset_dir}/{self.name}_{type}.{extension}"
 
     def get_wave_filename(self, index: int) -> str:
-        return "{}/{}_{:05d}.wav".format(self.wave_file_dir, self.name, index)
+        return f"{self.wave_file_dir}/{self.name}/{self.name}_{index:05d}.wav"
 
+def default_generator_argparse():
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('--num_examples', type=int, dest='samples', action='store', default=64,
+                        help='Number of examples to create')
+    parser.add_argument('--name', type=str, dest='name',  required=True,
+                        help='Name of datasets to create')
+    parser.add_argument('--dataset_directory', type=str, dest='data_dir',  default='test_datasets',
+                        help='Directory to put datasets')
+    parser.add_argument('--wavefile_directory', type=str, dest='wave_dir',  default='test_waves',
+                        help='Directory to put wave files. Will have the dataset name appended automatically')
+    parser.add_argument('--length', type=float, dest='length', default=1.0,
+                        help='Length of each sample in seconds')
+    parser.add_argument('--sample_rate', type=int, dest='sample_rate', default=16384,
+                        help='Sample rate (Samples/second)')
+    parser.add_argument('--sampling_method', type=str, dest='method', default='random', choices=['random'],
+                        help='Method to use for generating examples. Currently only random, but may include whole space later')
+    return parser
 
 
 

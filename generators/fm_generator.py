@@ -95,6 +95,10 @@ class InverSynthGenerator(SynthplayerGenerator):
 
 if __name__ == "__main__":
     import json
+    import argparse
+    parser = default_generator_argparse()
+    args = parser.parse_args()
+
     gen = InverSynthGenerator()
     """
     * amplitudes are in [0.001, 1]
@@ -171,9 +175,13 @@ if __name__ == "__main__":
         parameters=search_parameters,
         fixed_parameters=fixed_parameters
     )
-    g = DatasetCreator("inversynth_tiny",
-        dataset_dir="test_datasets",
-        wave_file_dir="test_waves/inversynth_tiny/",
+    g = DatasetCreator(name=args.name,
+        dataset_dir=args.data_dir,
+        wave_file_dir=args.wave_dir,
         parameters=parameters
     )
-    g.generate(sound_generator=gen,length=1,sample_rate=16384,method="random",max=40)
+    g.generate(sound_generator=gen,
+                length=args.length,
+                sample_rate=args.sample_rate,
+                method=args.method,
+                max=args.samples)
