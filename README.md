@@ -82,3 +82,4 @@ todo:
 InverSynth
 InverSynth Full
 Sine
+VST
