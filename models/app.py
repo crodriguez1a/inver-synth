@@ -14,6 +14,9 @@ from typing import Dict, Tuple, Sequence, List, Callable
 from generators.generator import *
 from models.common.data_generator import SoundDataGenerator
 
+from keras.callbacks import CSVLogger
+
+
 
 """Dotenv Config"""
 env_path = Path('.') / '.env'
@@ -200,7 +203,9 @@ def train_model(
         dataset_file: str = None, parameters_file: str = None,
         run_name: str = None,
         data_format: str = 'channels_last',
-        save_best: bool = True):
+        save_best: bool = True,
+        resume:bool = False,
+        checkpoint:bool=True):
 
     if not dataset_file:
         dataset_file = os.getcwd() + "/" + dataset_dir + "/" + \
@@ -213,6 +218,7 @@ def train_model(
 
     model_file = f"{output_dir}/{run_name}.h5"
     best_model_file = f"{output_dir}/{run_name}_best.h5"
+    checkpoint_model_file = f"{output_dir}/{run_name}_checkpoint.h5"
     history_file = f"{output_dir}/{run_name}.csv"
     history_graph_file = f"{output_dir}/{run_name}.pdf"
 
@@ -242,31 +248,51 @@ def train_model(
     # NOTE: on CPU only `channels_last` is supported
     keras.backend.set_image_data_format(data_format)
 
-    model: keras.Model = model_callback(model_name=model_name,
-                                        inputs=n_samples,
-                                        outputs=n_outputs,
-                                        data_format=data_format)
-
-    # Summarize and compile the model
-    summarize_compile(model)
+    model : keras.Model = None
+    if resume:
+        history = pd.read_csv(history_file)
+        # Note - its zero indexed in the file, but 1 indexed in the display
+        initial_epoch:int = max(history.iloc[:,0]) + 1
+        print(f"Resuming from model file: {checkpoint_model_file} after epoch {initial_epoch}")
+        model = keras.models.load_model(checkpoint_model_file)
+    else:
+        model = model_callback(model_name=model_name,
+                                            inputs=n_samples,
+                                            outputs=n_outputs,
+                                            data_format=data_format)
+        # Summarize and compile the model
+        summarize_compile(model)
+        initial_epoch = 0
+        open(history_file, 'w').close()
 
     callbacks = []
-    cp_callback = keras.callbacks.ModelCheckpoint(filepath=best_model_file,
+    best_callback = keras.callbacks.ModelCheckpoint(filepath=best_model_file,
                                                   save_weights_only=False,
                                                   save_best_only=True,
                                                   verbose=1)
+    checkpoint_callback = keras.callbacks.ModelCheckpoint(filepath=checkpoint_model_file,
+                                                  save_weights_only=False,
+                                                  save_best_only=False,
+                                                  verbose=1)
     if save_best:
-        callbacks.append(cp_callback)
+        callbacks.append(best_callback)
+    if checkpoint:
+        callbacks.append(checkpoint_callback)
+    callbacks.append( CSVLogger(history_file, append=True) )
     # Fit the model
     history = model.fit(x=training_generator,
                         validation_data=validation_generator,
-                        epochs=epochs, callbacks=callbacks)
+                        epochs=epochs, callbacks=callbacks,
+                        initial_epoch=initial_epoch)
+
+    # Save model
+    model.save(model_file)
 
     # Save history
     try:
         hist_df = pd.DataFrame(history.history)
-        with open(history_file, 'w') as f:
-            hist_df.to_csv(f)
+        #with open(history_file, 'w') as f:
+            #hist_df.to_csv(f)
         try:
             fig = hist_df.plot(subplots=True,figsize=(8,25))
             fig[0].get_figure().savefig(history_graph_file)
@@ -279,8 +305,6 @@ def train_model(
         print(e)
 
 
-    # Save model
-    model.save(model_file)
 
     # evaluate prediction on random sample from validation set
     # Parameter data - needed for decoding!
