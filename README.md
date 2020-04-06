@@ -77,8 +77,4 @@ python -m models.spectrogram_cnn --model C5 --dataset_name inversynth
 
 ### Datasets
 
-todo:
-
-InverSynth
-InverSynth Full
-Sine
+See [GENERATING.md](GENERATING.md)

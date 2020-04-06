@@ -1,6 +1,8 @@
 import os
 from tensorflow import keras
 import tensorflow as tf
+import tensorflow.keras.backend as K
+
 # import keras
 import logging
 import numpy as np
@@ -43,6 +45,33 @@ def train_val_split(x_train: np.ndarray,
 
 """Model Utils"""
 
+def mean_percentile_rank(y_true, y_pred, k=5):
+    """
+    @paper
+    The first evaluation measure is the Mean Percentile Rank
+    (MPR) which is computed per synthesizer parameter.
+    """
+    # TODO
+    pass
+
+def top_k_mean_accuracy(y_true, y_pred, k=5):
+    """
+    @ paper
+    The top-k mean accuracy is obtained by computing the top-k
+    accuracy for each test example and then taking the mean across
+    all examples. In the same manner as done in the MPR analysis,
+    we compute the top-k mean accuracy per synthesizer
+    parameter for 𝑘 = 1, ... ,5.
+    """
+    # TODO: per parameter?
+
+    original_shape = tf.shape(y_true)
+    y_true = tf.reshape(y_true, (-1, tf.shape(y_true)[-1]))
+    y_pred = tf.reshape(y_pred, (-1, tf.shape(y_pred)[-1]))
+    top_k = K.in_top_k(y_pred, tf.cast(tf.argmax(y_true, axis=-1), 'int32'), k)
+    correct_pred =  tf.reshape(top_k, original_shape[:-1])
+    return tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+
 
 def summarize_compile(model: keras.Model):
     model.summary(line_length=80, positions=[.33, .65, .8, 1.])
@@ -52,14 +81,14 @@ def summarize_compile(model: keras.Model):
                   # @paper: Therefore, we converged on using sigmoid activations with binary cross entropy loss.
                   loss=keras.losses.BinaryCrossentropy(),
                   # List of metrics to monitor
-                  metrics=[  # @paper: 1) Mean Percentile Rank?
-        keras.metrics.MeanAbsolutePercentageError(),
-        # @paper: 2) Top-k mean accuracy based evaluation
-        # TODO: keras.metrics.TopKCategoricalAccuracy(),
-        # https://github.com/tensorflow/tensorflow/issues/9243
-        # @paper: 3) Mean Absolute Error based evaluation
-        keras.metrics.MeanAbsoluteError(),
-        keras.metrics.CategoricalAccuracy(), ])
+                  metrics=[
+                      # @paper: 1) Mean Percentile Rank?
+                      # mean_percentile_rank,
+                      # @paper: 2) Top-k mean accuracy based evaluation
+                      top_k_mean_accuracy,
+                      # @paper: 3) Mean Absolute Error based evaluation
+                      keras.metrics.MeanAbsoluteError()
+                  ])
 
 
 def fit(model: keras.Model,
@@ -291,8 +320,6 @@ def train_model(
     # Save history
     try:
         hist_df = pd.DataFrame(history.history)
-        #with open(history_file, 'w') as f:
-            #hist_df.to_csv(f)
         try:
             fig = hist_df.plot(subplots=True,figsize=(8,25))
             fig[0].get_figure().savefig(history_graph_file)
