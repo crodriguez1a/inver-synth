@@ -30,7 +30,7 @@ def standard_run_parser() -> argparse.ArgumentParser:
                         help='Image data format for Keras. If CPU only, has to be channels_last')
     parser.add_argument('--run_name', type=str, dest='run_name',
                         help='Name to save the output under. Defaults to dataset_name + model')
-    parser.add_argument('--resume', type=bool, dest='resume', default=False,
+    parser.add_argument('--resume', dest='resume', action='store_const', const=True, default=False,
                         help='Look for a checkpoint file to resume from')
     return parser
 
