@@ -278,12 +278,14 @@ def train_model(
     keras.backend.set_image_data_format(data_format)
 
     model : keras.Model = None
-    if resume:
+    if resume and os.path.exists(checkpoint_model_file):
         history = pd.read_csv(history_file)
         # Note - its zero indexed in the file, but 1 indexed in the display
         initial_epoch:int = max(history.iloc[:,0]) + 1
         print(f"Resuming from model file: {checkpoint_model_file} after epoch {initial_epoch}")
-        model = keras.models.load_model(checkpoint_model_file)
+        model = keras.models.load_model(checkpoint_model_file,custom_objects={
+            'top_k_mean_accuracy':top_k_mean_accuracy
+        })
     else:
         model = model_callback(model_name=model_name,
                                             inputs=n_samples,
