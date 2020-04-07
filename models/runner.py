@@ -37,11 +37,13 @@ def standard_run_parser() -> argparse.ArgumentParser:
 
 if __name__ == "__main__":
 
+    print("Starting model runner")
     # Get a standard parser, and the arguments out of it
     parser = standard_run_parser()
     args = parser.parse_args()
     setup = vars(args)
 
+    print("Parsed arguments")
     # Figure out the model callback
     model_callback = get_spectrogram
     if setup['model_name'] == 'e2e':
