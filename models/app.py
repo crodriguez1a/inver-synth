@@ -16,7 +16,7 @@ from typing import Dict, Tuple, Sequence, List, Callable
 from generators.generator import *
 from models.common.data_generator import SoundDataGenerator
 
-from keras.callbacks import CSVLogger
+from tensorflow.keras.callbacks import CSVLogger
 
 
 
