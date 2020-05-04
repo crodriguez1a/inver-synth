@@ -11,6 +11,7 @@ from synthplayer.oscillators import *
 
 from playing.reconstruction.curves import *
 from playing.reconstruction.mod_oscillators import *
+from models.app import top_k_mean_accuracy
 
 
 class FMResynth():
@@ -55,13 +56,15 @@ class FMResynth():
 
         # Load in the model
         print(f"Loading model from {model_file}")
-        model = keras.models.load_model( model_file )
+        model = keras.models.load_model(model_file,custom_objects={
+            'top_k_mean_accuracy':top_k_mean_accuracy
+        })
 
         # Load the audio data
         print(f"Loading audio from {input_file}")
         fs, data = wavfile.read(input_file)
         if not fs == 16384:
-            print("Warning! Wrong Sample Rate... Models all work with 16834 at the moment")
+            print(f"Warning! Wrong Sample Rate: {fs} Models all work with 16834 at the moment")
         print(f"Got {len(data)} samples at {fs}/s")
 
         # Set up the curves for all of the parameters
@@ -131,8 +134,8 @@ class Progress():
 
 
 if __name__ == "__main__":
-    model_file = "output/inversynth_full_e2e_best.h5"
-    params_file = "test_datasets/inversynth_tiny_params.pckl"
+    model_file = "output/inver_wide_e2e_best.h5"
+    params_file = "test_datasets/inver_wide_params.pckl"
     resynth = FMResynth()
     for i in range(6):
         input = f"reconstruction_waves/example{i+1}.wav"
