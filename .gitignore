@@ -5,6 +5,7 @@ test_waves/*
 data/*
 output/
 comparison/
+reconstruction_waves/
 
 # To preserve file for Dave :/
 librenderman.so
