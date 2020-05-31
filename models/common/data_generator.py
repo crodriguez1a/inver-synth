@@ -11,13 +11,15 @@ class SoundDataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
 
     def __init__(self, data_file=None, batch_size=32, n_samps=16384,
-                 shuffle=True, last: float = 0., first: float = 0., channels_last=False):
+                 shuffle=True, last: float = 0., first: float = 0.,
+                 channels_last=False, for_autoencoder=False):
         'Initialization'
         self.dim = (1, n_samps)
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.data_file = data_file
         self.n_channels = 1
+        self.for_autoencoder = for_autoencoder
         # For the E2E model, need to return channels last?
         if channels_last:
             self.expand_axis = 2
@@ -29,21 +31,21 @@ class SoundDataGenerator(keras.utils.Sequence):
         self.database = database
 
         self.n_samps = self.read_file(0).shape[0]
-        print("N Samps: {}".format(self.n_samps))
+        print("N Samps in audio data: {}".format(self.n_samps))
 
         # set up list of IDs from data files
         n_points = len(database['files'])
         self.list_IDs = range(len(database['files']))
 
-        print("Num points: {}".format(len(self.list_IDs)))
+        print(f"Number of examples in dataset: {len(self.list_IDs)}")
         if last > 0.0:
             slice: int = int(n_points * (1-last))
             self.list_IDs = self.list_IDs[slice:]
-            print("Last, with {} points".format(len(self.list_IDs)))
+            print(f"Taking Last N points: {len(self.list_IDs)}")
         elif first > 0.0:
             slice: int = int(n_points * first)
             self.list_IDs = self.list_IDs[:slice]
-            print("First, with {} points".format(len(self.list_IDs)))
+            print(f"Taking First N points: {len(self.list_IDs)}")
 
         # set up label size from data files
         self.label_size = len(database['labels'][0])
@@ -108,4 +110,6 @@ class SoundDataGenerator(keras.utils.Sequence):
         Xd = np.expand_dims(np.vstack(X), axis=2)
         yd = np.vstack(y)
 
+        if self.for_autoencoder:
+            return yd,yd
         return Xd, yd
