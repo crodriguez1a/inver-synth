@@ -7,6 +7,7 @@ import math
 from scipy import stats
 import re
 import json
+import samplerate
 
 import sys
 sys.path.append(
@@ -19,9 +20,13 @@ class VSTGenerator(SoundGenerator):
         self.randomise_non_set = randomise_non_set
         self.randomise_all = randomise_all
         self.sample_rate = sample_rate
+        self.load_engine()
+
+
+    def load_engine(self):
         try:
             print("_____ LOADING VST _______")
-            engine = rm.RenderEngine(sample_rate, 512, 512)
+            engine = rm.RenderEngine(self.sample_rate, 512, 512)
             if engine.load_plugin(self.vst):
                 print("Loaded {}".format(self.vst))
 
@@ -38,9 +43,9 @@ class VSTGenerator(SoundGenerator):
         if not self.engine:
             print("VST not loaded")
             return np.zeros(5)
+        resample = False
         if not self.sample_rate == sample_rate:
-            print("Mismatched sample rate. got {}, asked for {}".format(
-                self.sample_rate, sample_rate))
+            resample = True
 
         engine = self.engine
         #print( engine.get_plugin_parameters_description() )
@@ -76,9 +81,22 @@ class VSTGenerator(SoundGenerator):
         engine.set_patch(list(synth_params.items()))
         engine.render_patch(40, 127, note_length, length)
         data = engine.get_audio_frames()
-        #print("Got {} frames as type {}".format(len(data),type(data)))
-        nsamps = int(length*sample_rate)
-        result = np.array(data[:nsamps])
+
+        if resample:
+            ratio = sample_rate / self.sample_rate
+            resamp = samplerate.resample(data, ratio, 'sinc_best')
+            #print(f"Resampling from {self.sample_rate} to {sample_rate}, ratio: {ratio}. Had {len(data)} samples, now {len(resamp)}")
+            data = resamp
+
+        nsamps_target = int(length*sample_rate)
+        #print(f"Got {len(data)} frames as type {type(data)}. Target: {nsamps_target}")
+
+        result = np.array(data[:nsamps_target])
+
+        nans = np.sum(np.isnan(result))
+        if nans > 0:
+            print(f"Error: got {nans} NANs in file {filename}")
+            return np.zeros(nsamps_target)
         return result
 
     def create_config(self, filename=None, default_value=0.):
@@ -116,8 +134,10 @@ def run_generator(args):#name: str, plugin: str, config: str, max: int,
     sample = [Parameter(p['name'],p['values'],p.get('id',"")) for p in config['parameters']]
     fixed = dict([(p['name'],p['value']) for p in config['fixed_parameters']])
 
+    plugin_rate = args.generate_samplerate or args.sample_rate
+
     generate_examples(
-        gen = VSTGenerator(vst=args.plugin, sample_rate=args.sample_rate),
+        gen = VSTGenerator(vst=args.plugin, sample_rate=plugin_rate),
         parameters=ParameterSet(
             parameters = sample,
             fixed_parameters = fixed
@@ -151,6 +171,8 @@ if __name__ == "__main__":
                         help='Default setting for parameters when generating a blank config')
     parser.add_argument('--note_length', type=float, dest='note_length', default=0.8,
                         help='Length of a note in seconds')
+    parser.add_argument('--generation_sample_rate', type=int, default=None, dest='generate_samplerate',
+                        help='Sample rate for audio generation. Defaults to target samplerate, but some plugins (Dexed) have trouble running a our funny sample rates. Will be resampled to the target rate after generation')
 
     args = parser.parse_args()
     print(args)

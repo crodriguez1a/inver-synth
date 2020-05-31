@@ -22,9 +22,9 @@ class SoundGenerator:
     This is now a wrapper round the 'real' generation function
     to handle normalising and saving
     """
-    def generate(self,parameters:dict,filename:str,length:float,sample_rate:int,extra:dict)->np.ndarray:
+    def generate(self,parameters:dict,filename:str,length:float,sample_rate:int,extra:dict,normalise:bool=True)->np.ndarray:
         audio = self.do_generate(parameters,filename,length,sample_rate,extra)
-        if self.normalise():
+        if normalise:
             max = np.max(np.absolute(audio))
             if max > 0:
                 audio = audio / max
@@ -37,9 +37,6 @@ class SoundGenerator:
 
     def creates_wave_file(self) -> bool:
         return False
-
-    def normalise(self):
-        return True
 
     # Assumes that the data is -1..1 floating point
     def write_file(self,data : np.ndarray,filename:str,sample_rate:int):
@@ -148,7 +145,7 @@ class DatasetCreator():
                     params = json.loads(parameters[index])
                     audio = sound_generator.generate(
                         params,filename,
-                        length, sample_rate, extra)
+                        length, sample_rate, extra,normalise=self.normalise)
                     audio_exists[index] = True
                     datafile.flush()
                 if index % 1000 == 0:
@@ -188,6 +185,8 @@ def default_generator_argparse():
                         help="Regenerate the set of points to explore if it exists (will also force regenerating audio)")
     parser.add_argument('--regenerate_audio',  action="store_true",
                         help="Regenerate audio files if they exists")
+    parser.add_argument('--normalise',  action="store_true",
+                        help="Regenerate audio files if they exists")
     return parser
 
 def generate_examples(gen:SoundGenerator,parameters:ParameterSet,args=None,extra={}):
@@ -198,7 +197,8 @@ def generate_examples(gen:SoundGenerator,parameters:ParameterSet,args=None,extra
     g = DatasetCreator(name=args.name,
         dataset_dir=args.data_dir,
         wave_file_dir=args.wave_dir,
-        parameters=parameters
+        parameters=parameters,
+        normalise=args.normalise
     )
     g.create_parameters(
                 max=args.samples,
