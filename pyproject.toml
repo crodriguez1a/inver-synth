@@ -29,7 +29,7 @@ pytest = "^5.4.3"
 test = "python -m pytest"
 clean = "flake8 models/ generators/ tests/ & black models/ generators/ tests/ & isort ."
 start = "python -m tasks.start"
-generate_sin = "python -m generators.fm_generator"
+generate = "python -m generators.fm_generator"
 
 [tool.isort]
 multi_line_output=6
