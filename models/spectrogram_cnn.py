@@ -1,26 +1,14 @@
-import os
-
 import numpy as np
-
-from tensorflow import keras
-
 # import keras
 from kapre.time_frequency import Spectrogram
-
-from models.app import (
-    summarize_compile,
-    fit,
-    data_format_audio,
-    train_val_split,
-    evaluate,
-)
-from models.common.utils import utils
-from models.common.architectures import layers_map
-from models.common.data_generator import SoundDataGenerator
+from tensorflow import keras
 
 from generators.generator import *
-from pickle import load
-
+from models.app import (data_format_audio, evaluate, fit, summarize_compile,
+                        train_val_split)
+from models.common.architectures import layers_map
+from models.common.data_generator import SoundDataGenerator
+from models.common.utils import utils
 
 """
 The STFT spectrogram of the input signal is fed

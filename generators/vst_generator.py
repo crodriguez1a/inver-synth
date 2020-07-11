@@ -1,14 +1,14 @@
+import json
+import re
+import sys
+
 import librenderman as rm
+import numpy as np
+import samplerate
+from scipy import stats
+
 from generators.generator import *
 from generators.parameters import *
-
-import numpy as np
-from scipy import stats
-import re
-import json
-import samplerate
-
-import sys
 
 sys.path.append(
     "/Users/dmrust//Uni/Work/Creative Computing/SynthLearn/RenderMan/Builds/MacOSX/build/Debug/"

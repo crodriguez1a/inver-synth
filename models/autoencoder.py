@@ -1,14 +1,14 @@
-from keras.layers import Input, Dense
-from keras.models import Model
 from dataclasses import dataclass
-from tensorflow import keras
 from typing import List
 
+import tensorflowjs as tfjs
+from keras.layers import Dense, Input
+from keras.models import Model
+from tensorflow import keras
+
+from models.app import top_k_mean_accuracy
 from models.common.data_generator import SoundDataGenerator
 from models.common.soundfile_generator import SoundfileGenerator
-from models.app import top_k_mean_accuracy
-import tensorflowjs as tfjs
-
 
 """
 This is a start a doing an autoencoder, in order to learn simplified

@@ -1,8 +1,7 @@
-from synthplayer.oscillators import *
+from typing import Generator, Iterator, List, Optional, Sequence, Tuple
+
 from synthplayer import params as synth_params
-
-from typing import Generator, List, Sequence, Optional, Tuple, Iterator
-
+from synthplayer.oscillators import *
 
 
 class LinearCurve(Oscillator):

@@ -1,10 +1,9 @@
-from generators.generator import *
 import numpy as np
-
-from generators.parameters import freq_range, param_range
-
-from synthplayer.synth import *
 from synthplayer.oscillators import *
+from synthplayer.synth import *
+
+from generators.generator import *
+from generators.parameters import freq_range, param_range
 
 
 class SynthplayerGenerator(SoundGenerator):

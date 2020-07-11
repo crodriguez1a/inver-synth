@@ -1,11 +1,12 @@
 import os
-from tensorflow import keras
-from generators.generator import *
 import pickle
-from scipy.io import wavfile
-from scipy.io.wavfile import write as write_wav
 import re
 
+from scipy.io import wavfile
+from scipy.io.wavfile import write as write_wav
+from tensorflow import keras
+
+from generators.generator import *
 
 """
 This module generates comparisons - takes the original sound + params,

@@ -1,17 +1,15 @@
-from typing import Generator, List, Sequence, Optional, Tuple, Iterator, Dict
 import pickle
+from typing import Dict, Generator, Iterator, List, Optional, Sequence, Tuple
 
-from tensorflow import keras
-
-from scipy.io import wavfile
 import numpy as np
-
+from scipy.io import wavfile
 from synthplayer import params as synth_params
 from synthplayer.oscillators import *
+from tensorflow import keras
 
+from models.app import top_k_mean_accuracy
 from playing.reconstruction.curves import *
 from playing.reconstruction.mod_oscillators import *
-from models.app import top_k_mean_accuracy
 
 
 class FMResynth():

@@ -1,12 +1,12 @@
-from scipy.io.wavfile import write as write_wav
-import numpy as np
-from typing import List
-
+import argparse
 # ParamValue = Tuple[str,float,List[float]]
 import os
 import os.path
+from typing import List
+
 import h5py
-import argparse
+import numpy as np
+from scipy.io.wavfile import write as write_wav
 
 from generators.parameters import *
 
@@ -59,7 +59,8 @@ class SoundGenerator:
 
     # Assumes that the data is -1..1 floating point
     def write_file(self, data: np.ndarray, filename: str, sample_rate: int):
-        int_data = (data * np.iinfo(np.int16).max).astype(int)
+        # REVIEW: is this needed?
+        # int_data = (data * np.iinfo(np.int16).max).astype(int)
         write_wav(filename, sample_rate, data)
 
 
@@ -177,8 +178,6 @@ class DatasetCreator:
             audio_exists = datafile.get("audio_exists")
             print(audio_exists)
 
-            num_files = len(parameters)
-
             for index, filename in enumerate(filenames):
                 if (
                     audio_exists[index]
@@ -197,7 +196,7 @@ class DatasetCreator:
                         extra,
                         normalise=self.normalise,
                     )
-                    audio_exists[index] = True
+                    audio_exists[index] = bool(audio)
                     datafile.flush()
                 if index % 1000 == 0:
                     print("Generating example {}".format(index))

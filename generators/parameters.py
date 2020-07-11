@@ -1,10 +1,11 @@
-import numpy as np
-from typing import Dict, Tuple, Sequence, List
-from dataclasses import dataclass
-import random
-from pickle import dump
-import math
 import json
+import math
+import random
+from dataclasses import dataclass
+from pickle import dump
+from typing import Dict, List, Sequence, Tuple
+
+import numpy as np
 
 """
 A setting for a parameter, with its oneHOT encoding

@@ -92,3 +92,11 @@ synthesizer parameter configuration. This configuration is then used to produce 
 ```
 python -m models.spectrogram_cnn
 ```
+
+## Contributing
+
+To ensure passing builds, apply linting and formatting with:
+
+```
+poetry run task clean
+```

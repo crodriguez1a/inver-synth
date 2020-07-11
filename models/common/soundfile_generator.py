@@ -1,14 +1,12 @@
-import numpy as np
-from tensorflow import keras
-
-# import keras
-from scipy.io import wavfile
 import math
-from keras import Model
-
 from functools import lru_cache
 
+import numpy as np
 import samplerate
+from keras import Model
+# import keras
+from scipy.io import wavfile
+from tensorflow import keras
 
 
 class SoundfileGenerator(keras.utils.Sequence):

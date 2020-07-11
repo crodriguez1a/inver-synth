@@ -114,7 +114,7 @@ def fit(
         # monitoring validation loss and metrics
         # at the end of each epoch
         validation_data=(x_val, y_val),
-        verbose=0
+        verbose=0,
     )
 
     # The returned "history" object holds a record
@@ -259,7 +259,7 @@ def train_model(
     save_best: bool = True,
     resume: bool = False,
     checkpoint: bool = True,
-    model_type: str = "E2E"
+    model_type: str = "E2E",
 ):
 
     if not dataset_file:
@@ -359,7 +359,7 @@ def train_model(
             epochs=epochs,
             callbacks=callbacks,
             initial_epoch=initial_epoch,
-            verbose=0, # https://github.com/tensorflow/tensorflow/issues/38064
+            verbose=0,  # https://github.com/tensorflow/tensorflow/issues/38064
         )
     except Exception as e:
         print(f"Something went wrong during `model.fit`: {e}")

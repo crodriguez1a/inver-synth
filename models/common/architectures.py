@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+
 # Model architectures
 @dataclass
 class C:

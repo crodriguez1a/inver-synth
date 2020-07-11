@@ -1,11 +1,13 @@
 import itertools
-from math import pi, sin, cos, log, fabs, floor, sqrt
-import sys
 import random
-from typing import Generator, List, Sequence, Optional, Tuple, Iterator
-from abc import abstractmethod, ABC
+import sys
+from abc import ABC, abstractmethod
+from math import cos, fabs, floor, log, pi, sin, sqrt
+from typing import Generator, Iterator, List, Optional, Sequence, Tuple
+
 from synthplayer import params
 from synthplayer.oscillators import *
+
 
 class ModSine(Oscillator):
     """Sine Wave oscillator."""

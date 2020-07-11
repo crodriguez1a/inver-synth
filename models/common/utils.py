@@ -1,7 +1,8 @@
 import os
+import uuid
+
 import librosa
 import numpy as np
-import uuid
 
 
 class Utils:

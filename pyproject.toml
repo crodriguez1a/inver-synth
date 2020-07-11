@@ -27,8 +27,7 @@ pytest = "^5.4.3"
 
 [tool.taskipy.tasks]
 test = "python -m pytest"
-lint = "flake8 models/ generators/ test/"
-format = "black models/ generators/ test/"
+clean = "flake8 models/ generators/ tests/ & black models/ generators/ tests/ & isort ."
 start = "python -m tasks.start"
 generate_sin = "python -m generators.fm_generator"
 

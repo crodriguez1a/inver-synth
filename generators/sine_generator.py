@@ -1,6 +1,8 @@
-from generators.generator import *
-import numpy as np
 import math
+
+import numpy as np
+
+from generators.generator import *
 
 
 class SineGenerator(SoundGenerator):

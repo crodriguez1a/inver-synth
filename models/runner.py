@@ -1,8 +1,8 @@
+import argparse
+
 from models.app import train_model
 from models.e2e_cnn import get_model as get_e2e
 from models.spectrogram_cnn import get_model as get_spectrogram
-
-import argparse
 
 
 def standard_run_parser() -> argparse.ArgumentParser:

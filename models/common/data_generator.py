@@ -1,9 +1,8 @@
+import h5py
 import numpy as np
-from tensorflow import keras
-
 # import keras
 from scipy.io import wavfile
-import h5py
+from tensorflow import keras
 
 
 class SoundDataGenerator(keras.utils.Sequence):
@@ -85,7 +84,7 @@ class SoundDataGenerator(keras.utils.Sequence):
     def on_epoch_end(self):
         "Updates indexes after each epoch"
         self.indexes = np.arange(len(self.list_IDs))
-        if self.shuffle == True:
+        if self.shuffle is True:
             np.random.shuffle(self.indexes)
 
     # Think this makes things worse - fills up memory
