@@ -110,7 +110,7 @@ def get_model(
             f"Warning: {model_name} is not compatible with the spectrogram model. C1 Architecture will be used instead."
         )
     return assemble_model(
-        np.zeros([inputs, 1]),
+        np.zeros([1, inputs]),
         n_outputs=outputs,
         arch_layers=arch_layers,
         data_format=data_format,

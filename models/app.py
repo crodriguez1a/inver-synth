@@ -352,6 +352,7 @@ def train_model(
     # Fit the model
     history = None
     try:
+        # TODO: fix incompatible shapes during spectrogram_cnn
         history = model.fit(
             x=training_generator,
             validation_data=validation_generator,
