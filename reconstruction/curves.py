@@ -8,17 +8,18 @@ class LinearCurve(Oscillator):
     """
     Takes an ordered list of <time,value> tuples to define the curve to sample
     """
-    def __init__(self, points:List[Tuple[float,float]], samplerate: int = 0) -> None:
+
+    def __init__(self, points: List[Tuple[float, float]], samplerate: int = 0) -> None:
         super().__init__(samplerate)
         self._points = points
-        self._increment = 1.0/self.samplerate
+        self._increment = 1.0 / self.samplerate
         self._t = 0
         self._prev_point = None
         self._next_point = None
         self._point_index = 0
 
-    def append(self,time:float,level:float):
-        tup = (time,level)
+    def append(self, time: float, level: float):
+        tup = (time, level)
         self._points.append(tup)
 
     def update_points(self):
@@ -44,14 +45,14 @@ class LinearCurve(Oscillator):
             pass
 
     # Sample and increment
-    def next_sample(self)->float:
+    def next_sample(self) -> float:
         self.update_points()
         val = self.sample()
         self._t += self._increment
         return val
 
     # Sample at the current value
-    def sample(self)->float:
+    def sample(self) -> float:
         # If we have both points, interpolate between
         if self._next_point and self._prev_point:
             t_range = self._next_point[0] - self._prev_point[0]
@@ -68,18 +69,16 @@ class LinearCurve(Oscillator):
         else:
             return 0.0
 
-
-
-
     def blocks(self) -> Generator[List[float], None, None]:
         while True:
             block = []  # type: List[float]
-            #print(f"Time: {self._t}, next: {self._next_point}, prev: {self._prev_point}")
+            # print(f"Time: {self._t}, next: {self._next_point}, prev: {self._prev_point}")
             for _ in range(synth_params.norm_osc_blocksize):
                 block.append(self.next_sample())
             yield block
 
+
 if __name__ == "__main__":
-    a = LinearCurve([(5.0, -1.),(10., 1.),(20.,-1)],samplerate=10)
+    a = LinearCurve([(5.0, -1.0), (10.0, 1.0), (20.0, -1)], samplerate=10)
     for _ in range(300):
         print(f"{a._t} : {a.next_sample()}")

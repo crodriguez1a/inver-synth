@@ -34,16 +34,16 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: black
-        run: poetry run black models/ --check
+        run: poetry run black . --check
 
       - name: isort
         run: poetry run isort . --check
 
       # - name: mypy
-      #   run: poetry run mypy models/
+      #   run: poetry run mypy .
 
       - name: flake8
-        run: poetry run flake8 models/ generators/ --max-line-length 99
+        run: poetry run flake8 models/ generators/ reconstruction/ --max-line-length 99
 
       - name: pytest
         run: poetry run pytest

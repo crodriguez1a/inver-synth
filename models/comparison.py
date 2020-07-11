@@ -9,7 +9,8 @@ from scipy.io import wavfile
 from scipy.io.wavfile import write as write_wav
 from tensorflow import keras
 
-from generators.generator import InverSynthGenerator, SoundGenerator, VSTGenerator
+from generators.generator import (InverSynthGenerator, SoundGenerator,
+                                  VSTGenerator)
 from generators.parameters import ParameterSet
 
 """
