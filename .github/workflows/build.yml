@@ -36,8 +36,8 @@ jobs:
       - name: black
         run: poetry run black . --check
 
-      - name: isort
-        run: poetry run isort . --check
+      # - name: isort
+      #   run: poetry run isort . --check
 
       # - name: mypy
       #   run: poetry run mypy .

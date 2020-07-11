@@ -1,6 +1,5 @@
 import h5py
 import numpy as np
-# import keras
 from scipy.io import wavfile
 from tensorflow import keras
 
