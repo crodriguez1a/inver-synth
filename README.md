@@ -56,7 +56,7 @@ First, assign values to following environment variables in a `.env`:
 
 Parameter | Default | Description
 ---|---|---
-`--model` | `e2e` | Model architecture to run from the following: `C1`,`C2`,`C3`,`C4`,`C5`,`C6`,`C6XL`,`e2e`
+`--model` | E2E: `e2e` <br><br>STFT: `C1` | Model architecture to run from the following: `C1`,`C2`,`C3`,`C4`,`C5`,`C6`,`C6XL`,`e2e`
 `--dataset_name` | `InverSynth` | Namespace of dataset generated
 Optional |
 `--epochs`| `100` | Number of epochs to run

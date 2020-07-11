@@ -29,14 +29,6 @@ configuration. This configuration is then used to produce
 a sound that is similar to the input sound.
 """
 
-"""Audio Pre-processing"""
-
-
-def input_raw_audio(path: str, sr: int = 16384, duration: float = 1.0) -> tuple:
-    # @paper: signal in a duration of 1 second with a sampling rate of 16384Hz
-    # @paper: Input (16384 raw audio)
-    return utils.load_audio(path, sr, duration)
-
 
 """Model Architecture"""
 # @ paper:
@@ -110,9 +102,15 @@ Standard callback to get a model ready to train
 def get_model(
     model_name: str, inputs: int, outputs: int, data_format: str = "channels_last"
 ) -> keras.Model:
-    arch_layers = layers_map.get(model_name)
+    arch_layers = layers_map.get("C1")
+    if model_name in layers_map:
+        arch_layers = layers_map.get(model_name)
+    else:
+        print(
+            f"Warning: {model_name} is not compatible with the spectrogram model. C1 Architecture will be used instead."
+        )
     return assemble_model(
-        np.zeros([1, inputs]),
+        np.zeros([inputs, 1]),
         n_outputs=outputs,
         arch_layers=arch_layers,
         data_format=data_format,
@@ -121,72 +119,16 @@ def get_model(
 
 if __name__ == "__main__":
 
-    # TEMP!
+    from models.app import train_model
+    from models.runner import standard_run_parser
 
-    dataset: str = os.getcwd() + "/" + os.getenv("TRAINING_SET")
-    params = {"data_file": dataset, "batch_size": 64, "shuffle": True}
+    # Get a standard parser, and the arguments out of it
+    parser = standard_run_parser()
+    args = parser.parse_args()
+    setup = vars(args)
 
-    training_generator = SoundDataGenerator(first=0.8, channels_last=True, **params)
-    validation_generator = SoundDataGenerator(last=0.2, channels_last=True, **params)
+    # distinguish model type for reshaping
+    setup["model_type"] = "STFT"
 
-    n_samples = training_generator.get_audio_length()
-    print(f"get_audio_length: {n_samples}")
-    n_outputs = training_generator.get_label_size()
-
-    # Load in training data
-    # x_train: np.ndarray = np.load(dataset)
-    # n_samples: int = x_train.shape[2]
-    # n_examples: int = x_train.shape[0]
-    # print("Length: {}, number of examples: {}".format(n_samples,n_examples))
-
-    # Load in label data
-    # labels: str = os.getcwd() + os.getenv('LABELS')
-    # y_train: np.ndarray = np.load(labels)
-    # n_labels: int = y_train.shape[1]
-    # n_label_examples: int = y_train.shape[0]
-    # print("Label Length: {}, number of examples: {}".format(n_labels,n_label_examples))
-
-    # Parameter data - needed for decoding!
-    param_file: str = os.getcwd() + "/" + os.getenv("PARAMETERS")
-    with open(param_file, "rb") as f:
-        parameters: ParameterSet = load(f)
-
-    # set keras image_data_format
-    # NOTE: on CPU only `channels_last` is supported
-    data_format: str = os.getenv("IMAGE_DATA_FORMAT")
-    keras.backend.set_image_data_format(data_format)
-
-    arch_layers = layers_map.get(os.getenv("ARCHITECTURE", "C1"))
-
-    model: keras.Model = assemble_model(
-        np.zeros([1, n_samples]),
-        n_outputs=n_outputs,
-        arch_layers=arch_layers,
-        data_format=data_format,
-    )
-
-    # Reserve samples for validation
-    # split: float = .2
-    # x_val, y_val, x_train, y_train = train_val_split(x_train, y_train, split)
-    # print("Shapes: x_val={}, y_val={}, x_train={}, y_train={}".format(x_val.shape,y_val.shape,x_train.shape,y_train.shape))
-
-    # Summarize and compile the model
-    summarize_compile(model)
-
-    # Fit, with validation
-    epochs: int = int(os.getenv("EPOCHS", 100))  # @paper: 100
-
-    # NOTE: `fit_generator` trains the model on data generated
-    # batch-by-batch using `training_generator` (keras.utils.Sequence instance)
-    model.fit_generator(
-        generator=training_generator,
-        validation_data=validation_generator,
-        epochs=epochs,
-    )
-
-    # evaluate prediction on random sample from validation set
-    validation_generator.on_epoch_end()
-    X, y = validation_generator.__getitem__(0)
-    prediction: np.ndarray = model.predict(X)
-    evaluate(prediction, X, y, parameters)
-    model.save("trained_model.h5")
+    # Actually train the model
+    train_model(model_callback=get_model, **setup)

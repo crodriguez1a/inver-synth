@@ -15,8 +15,8 @@ def create_env():
         with open(".env", "w") as f:
             f.write(
                 """
-ARCHITECTURE=C1
-EPOCHS=100
+# ARCHITECTURE=C1
+# EPOCHS=100
             """
             )
 

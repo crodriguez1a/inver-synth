@@ -14,14 +14,6 @@ analyze the learned representation to predict the
 synthesizer parameter configuration.
 """
 
-"""Audio Pre-processing"""
-
-
-def input_raw_audio(path: str, sr: int = 16384, duration: float = 1.0) -> tuple:
-    # @paper: signal in a duration of 1 second with a sampling rate of 16384Hz
-    # @paper: Input (16384 raw audio)
-    return utils.load_audio(path, sr, duration)
-
 
 """Model Architecture"""
 # @ paper:

@@ -60,7 +60,6 @@ def top_k_mean_accuracy(y_true, y_pred, k=5):
     parameter for 𝑘 = 1, ... ,5.
     """
     # TODO: per parameter?
-
     original_shape = tf.shape(y_true)
     y_true = tf.reshape(y_true, (-1, tf.shape(y_true)[-1]))
     y_pred = tf.reshape(y_pred, (-1, tf.shape(y_pred)[-1]))
@@ -260,6 +259,7 @@ def train_model(
     save_best: bool = True,
     resume: bool = False,
     checkpoint: bool = True,
+    model_type: str = "E2E"
 ):
 
     if not dataset_file:
@@ -389,5 +389,10 @@ def train_model(
     # Shuffle data
     validation_generator.on_epoch_end()
     X, y = validation_generator.__getitem__(0)
+
+    if model_type == "STFT":
+        # stft expects shape (channel, sample_rate)
+        X = np.moveaxis(X, 1, -1)
+
     prediction: np.ndarray = model.predict(X)
     evaluate(prediction, X, y, parameters)
