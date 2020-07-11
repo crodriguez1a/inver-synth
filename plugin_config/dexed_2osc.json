@@ -1,0 +1,723 @@
+{
+    "parameters": [
+      { "id": 0, "name": "Cutoff",
+        "values": [0.0,0.25, 0.5, 0.75, 1.0]
+      },
+      { "id": 1, "name": "Resonance",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 5, "name": "FEEDBACK",
+          "values": [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
+      },
+      { "id": 7, "name": "LFO SPEED",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 9, "name": "LFO PM DEPTH",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 8, "name": "LFO DELAY",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 10, "name": "LFO AM DEPTH",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 12, "name": "LFO WAVE",
+          "values": [0.0,0.2,0.4,0.6,0.8,1.0]
+      },
+
+      { "id": 15, "name": "PITCH EG RATE 1",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 16, "name": "PITCH EG RATE 2",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 17, "name": "PITCH EG RATE 3",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 18, "name": "PITCH EG RATE 4",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 19, "name": "PITCH EG LEVEL 1",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 20, "name": "PITCH EG LEVEL 2",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 21, "name": "PITCH EG LEVEL 3",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 22, "name": "PITCH EG LEVEL 4",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 23, "name": "OP1 EG RATE 1",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 24, "name": "OP1 EG RATE 2",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 25, "name": "OP1 EG RATE 3",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 26, "name": "OP1 EG RATE 4",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 27, "name": "OP1 EG LEVEL 1",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 28, "name": "OP1 EG LEVEL 2",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 29, "name": "OP1 EG LEVEL 3",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 30, "name": "OP1 EG LEVEL 4",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 31, "name": "OP1 OUTPUT LEVEL",
+          "values": [1.0]
+      },
+      { "id": 33, "name": "OP1 F COARSE",
+          "values": [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
+      },
+      { "id": 34, "name": "OP1 F FINE",
+          "values": [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
+      },
+      { "id": 35, "name": "OP1 OSC DETUNE",
+          "values": [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
+      },
+      { "id": 45, "name": "OP2 EG RATE 1",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 46, "name": "OP2 EG RATE 2",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 47, "name": "OP2 EG RATE 3",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 48, "name": "OP2 EG RATE 4",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 49, "name": "OP2 EG LEVEL 1",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 50, "name": "OP2 EG LEVEL 2",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 51, "name": "OP2 EG LEVEL 3",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 52, "name": "OP2 EG LEVEL 4",
+          "values": [0.0,0.25,0.5,0.75,1.0]
+      },
+      { "id": 53, "name": "OP2 OUTPUT LEVEL",
+          "values": [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
+      },
+
+      { "id": 55, "name": "OP2 F COARSE",
+          "values": [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
+      },
+      { "id": 56, "name": "OP2 F FINE",
+          "values": [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
+      },
+      { "id": 57, "name": "OP2 OSC DETUNE",
+          "values": [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
+      }
+
+
+
+    ],
+    "fixed_parameters": [
+
+      { "id": 44, "name": "OP1 SWITCH",
+          "value": 1.0
+      },
+      { "id": 66, "name": "OP2 SWITCH",
+          "value": 1.0
+      },
+      { "id": 88, "name": "OP3 SWITCH",
+          "value": 0.0
+      },
+      { "id": 110, "name": "OP4 SWITCH",
+          "value": 0.0
+      },
+
+      { "id": 132, "name": "OP5 SWITCH",
+          "value": 0.0
+      },
+      { "id": 154, "name": "OP6 SWITCH",
+          "value": 0.0
+      },
+
+        {
+            "id": 32,
+            "name": "OP1 MODE",
+            "value": 0.0
+        },
+
+        {
+            "id": 36,
+            "name": "OP1 BREAK POINT",
+            "value": 0.5
+        },
+        {
+            "id": 37,
+            "name": "OP1 L SCALE DEPTH",
+            "value": 0.5
+        },
+        {
+            "id": 38,
+            "name": "OP1 R SCALE DEPTH",
+            "value": 0.5
+        },
+        {
+            "id": 39,
+            "name": "OP1 L KEY SCALE",
+            "value": 0.5
+        },
+        {
+            "id": 40,
+            "name": "OP1 R KEY SCALE",
+            "value": 0.5
+        },
+        {
+            "id": 41,
+            "name": "OP1 RATE SCALING",
+            "value": 0.5
+        },
+        {
+            "id": 42,
+            "name": "OP1 A MOD SENS.",
+            "value": 0.5
+        },
+        {
+            "id": 43,
+            "name": "OP1 KEY VELOCITY",
+            "value": 0.5
+        },
+
+
+
+        {
+            "id": 54,
+            "name": "OP2 MODE",
+            "value": 0.0
+        },
+        {
+            "id": 58,
+            "name": "OP2 BREAK POINT",
+            "value": 0.5
+        },
+        {
+            "id": 59,
+            "name": "OP2 L SCALE DEPTH",
+            "value": 0.5
+        },
+        {
+            "id": 60,
+            "name": "OP2 R SCALE DEPTH",
+            "value": 0.5
+        },
+        {
+            "id": 61,
+            "name": "OP2 L KEY SCALE",
+            "value": 0.5
+        },
+        {
+            "id": 62,
+            "name": "OP2 R KEY SCALE",
+            "value": 0.5
+        },
+        {
+            "id": 63,
+            "name": "OP2 RATE SCALING",
+            "value": 0.5
+        },
+        {
+            "id": 64,
+            "name": "OP2 A MOD SENS.",
+            "value": 0.5
+        },
+        {
+            "id": 65,
+            "name": "OP2 KEY VELOCITY",
+            "value": 0.5
+        },
+
+
+
+
+
+
+
+
+
+
+
+
+        {
+            "id": 2,
+            "name": "Output",
+            "value": 1.0
+        },
+          {
+              "id": 3,
+              "name": "MASTER TUNE ADJ",
+              "value": 0.0
+          },
+          {
+              "id": 4,
+              "name": "ALGORITHM",
+              "value": 0.0
+          },
+        {
+            "id": 6,
+            "name": "OSC KEY SYNC",
+            "value": 1.0
+        },
+        {
+            "id": 11,
+            "name": "LFO KEY SYNC",
+            "value": 1.0
+        },
+        {
+            "id": 13,
+            "name": "MIDDLE C",
+            "value": 0.5
+        },
+        {
+            "id": 14,
+            "name": "P MODE SENS.",
+            "value": 0.5
+        },
+
+
+
+
+
+
+        {
+            "id": 67,
+            "name": "OP3 EG RATE 1",
+            "value": 0.5
+        },
+        {
+            "id": 68,
+            "name": "OP3 EG RATE 2",
+            "value": 0.5
+        },
+        {
+            "id": 69,
+            "name": "OP3 EG RATE 3",
+            "value": 0.5
+        },
+        {
+            "id": 70,
+            "name": "OP3 EG RATE 4",
+            "value": 0.5
+        },
+        {
+            "id": 71,
+            "name": "OP3 EG LEVEL 1",
+            "value": 0.5
+        },
+        {
+            "id": 72,
+            "name": "OP3 EG LEVEL 2",
+            "value": 0.5
+        },
+        {
+            "id": 73,
+            "name": "OP3 EG LEVEL 3",
+            "value": 0.5
+        },
+        {
+            "id": 74,
+            "name": "OP3 EG LEVEL 4",
+            "value": 0.5
+        },
+        {
+            "id": 75,
+            "name": "OP3 OUTPUT LEVEL",
+            "value": 0.5
+        },
+        {
+            "id": 76,
+            "name": "OP3 MODE",
+            "value": 0.5
+        },
+        {
+            "id": 77,
+            "name": "OP3 F COARSE",
+            "value": 0.5
+        },
+        {
+            "id": 78,
+            "name": "OP3 F FINE",
+            "value": 0.5
+        },
+        {
+            "id": 79,
+            "name": "OP3 OSC DETUNE",
+            "value": 0.5
+        },
+        {
+            "id": 80,
+            "name": "OP3 BREAK POINT",
+            "value": 0.5
+        },
+        {
+            "id": 81,
+            "name": "OP3 L SCALE DEPTH",
+            "value": 0.5
+        },
+        {
+            "id": 82,
+            "name": "OP3 R SCALE DEPTH",
+            "value": 0.5
+        },
+        {
+            "id": 83,
+            "name": "OP3 L KEY SCALE",
+            "value": 0.5
+        },
+        {
+            "id": 84,
+            "name": "OP3 R KEY SCALE",
+            "value": 0.5
+        },
+        {
+            "id": 85,
+            "name": "OP3 RATE SCALING",
+            "value": 0.5
+        },
+        {
+            "id": 86,
+            "name": "OP3 A MOD SENS.",
+            "value": 0.5
+        },
+        {
+            "id": 87,
+            "name": "OP3 KEY VELOCITY",
+            "value": 0.5
+        },
+
+        {
+            "id": 89,
+            "name": "OP4 EG RATE 1",
+            "value": 0.5
+        },
+        {
+            "id": 90,
+            "name": "OP4 EG RATE 2",
+            "value": 0.5
+        },
+        {
+            "id": 91,
+            "name": "OP4 EG RATE 3",
+            "value": 0.5
+        },
+        {
+            "id": 92,
+            "name": "OP4 EG RATE 4",
+            "value": 0.5
+        },
+        {
+            "id": 93,
+            "name": "OP4 EG LEVEL 1",
+            "value": 0.5
+        },
+        {
+            "id": 94,
+            "name": "OP4 EG LEVEL 2",
+            "value": 0.5
+        },
+        {
+            "id": 95,
+            "name": "OP4 EG LEVEL 3",
+            "value": 0.5
+        },
+        {
+            "id": 96,
+            "name": "OP4 EG LEVEL 4",
+            "value": 0.5
+        },
+        {
+            "id": 97,
+            "name": "OP4 OUTPUT LEVEL",
+            "value": 0.5
+        },
+        {
+            "id": 98,
+            "name": "OP4 MODE",
+            "value": 0.5
+        },
+        {
+            "id": 99,
+            "name": "OP4 F COARSE",
+            "value": 0.5
+        },
+        {
+            "id": 100,
+            "name": "OP4 F FINE",
+            "value": 0.5
+        },
+        {
+            "id": 101,
+            "name": "OP4 OSC DETUNE",
+            "value": 0.5
+        },
+        {
+            "id": 102,
+            "name": "OP4 BREAK POINT",
+            "value": 0.5
+        },
+        {
+            "id": 103,
+            "name": "OP4 L SCALE DEPTH",
+            "value": 0.5
+        },
+        {
+            "id": 104,
+            "name": "OP4 R SCALE DEPTH",
+            "value": 0.5
+        },
+        {
+            "id": 105,
+            "name": "OP4 L KEY SCALE",
+            "value": 0.5
+        },
+        {
+            "id": 106,
+            "name": "OP4 R KEY SCALE",
+            "value": 0.5
+        },
+        {
+            "id": 107,
+            "name": "OP4 RATE SCALING",
+            "value": 0.5
+        },
+        {
+            "id": 108,
+            "name": "OP4 A MOD SENS.",
+            "value": 0.5
+        },
+        {
+            "id": 109,
+            "name": "OP4 KEY VELOCITY",
+            "value": 0.5
+        },
+
+        {
+            "id": 111,
+            "name": "OP5 EG RATE 1",
+            "value": 0.5
+        },
+        {
+            "id": 112,
+            "name": "OP5 EG RATE 2",
+            "value": 0.5
+        },
+        {
+            "id": 113,
+            "name": "OP5 EG RATE 3",
+            "value": 0.5
+        },
+        {
+            "id": 114,
+            "name": "OP5 EG RATE 4",
+            "value": 0.5
+        },
+        {
+            "id": 115,
+            "name": "OP5 EG LEVEL 1",
+            "value": 0.5
+        },
+        {
+            "id": 116,
+            "name": "OP5 EG LEVEL 2",
+            "value": 0.5
+        },
+        {
+            "id": 117,
+            "name": "OP5 EG LEVEL 3",
+            "value": 0.5
+        },
+        {
+            "id": 118,
+            "name": "OP5 EG LEVEL 4",
+            "value": 0.5
+        },
+        {
+            "id": 119,
+            "name": "OP5 OUTPUT LEVEL",
+            "value": 0.5
+        },
+        {
+            "id": 120,
+            "name": "OP5 MODE",
+            "value": 0.5
+        },
+        {
+            "id": 121,
+            "name": "OP5 F COARSE",
+            "value": 0.5
+        },
+        {
+            "id": 122,
+            "name": "OP5 F FINE",
+            "value": 0.5
+        },
+        {
+            "id": 123,
+            "name": "OP5 OSC DETUNE",
+            "value": 0.5
+        },
+        {
+            "id": 124,
+            "name": "OP5 BREAK POINT",
+            "value": 0.5
+        },
+        {
+            "id": 125,
+            "name": "OP5 L SCALE DEPTH",
+            "value": 0.5
+        },
+        {
+            "id": 126,
+            "name": "OP5 R SCALE DEPTH",
+            "value": 0.5
+        },
+        {
+            "id": 127,
+            "name": "OP5 L KEY SCALE",
+            "value": 0.5
+        },
+        {
+            "id": 128,
+            "name": "OP5 R KEY SCALE",
+            "value": 0.5
+        },
+        {
+            "id": 129,
+            "name": "OP5 RATE SCALING",
+            "value": 0.5
+        },
+        {
+            "id": 130,
+            "name": "OP5 A MOD SENS.",
+            "value": 0.5
+        },
+        {
+            "id": 131,
+            "name": "OP5 KEY VELOCITY",
+            "value": 0.5
+        },
+
+        {
+            "id": 133,
+            "name": "OP6 EG RATE 1",
+            "value": 0.5
+        },
+        {
+            "id": 134,
+            "name": "OP6 EG RATE 2",
+            "value": 0.5
+        },
+        {
+            "id": 135,
+            "name": "OP6 EG RATE 3",
+            "value": 0.5
+        },
+        {
+            "id": 136,
+            "name": "OP6 EG RATE 4",
+            "value": 0.5
+        },
+        {
+            "id": 137,
+            "name": "OP6 EG LEVEL 1",
+            "value": 0.5
+        },
+        {
+            "id": 138,
+            "name": "OP6 EG LEVEL 2",
+            "value": 0.5
+        },
+        {
+            "id": 139,
+            "name": "OP6 EG LEVEL 3",
+            "value": 0.5
+        },
+        {
+            "id": 140,
+            "name": "OP6 EG LEVEL 4",
+            "value": 0.5
+        },
+        {
+            "id": 141,
+            "name": "OP6 OUTPUT LEVEL",
+            "value": 0.5
+        },
+        {
+            "id": 142,
+            "name": "OP6 MODE",
+            "value": 0.5
+        },
+        {
+            "id": 143,
+            "name": "OP6 F COARSE",
+            "value": 0.5
+        },
+        {
+            "id": 144,
+            "name": "OP6 F FINE",
+            "value": 0.5
+        },
+        {
+            "id": 145,
+            "name": "OP6 OSC DETUNE",
+            "value": 0.5
+        },
+        {
+            "id": 146,
+            "name": "OP6 BREAK POINT",
+            "value": 0.5
+        },
+        {
+            "id": 147,
+            "name": "OP6 L SCALE DEPTH",
+            "value": 0.5
+        },
+        {
+            "id": 148,
+            "name": "OP6 R SCALE DEPTH",
+            "value": 0.5
+        },
+        {
+            "id": 149,
+            "name": "OP6 L KEY SCALE",
+            "value": 0.5
+        },
+        {
+            "id": 150,
+            "name": "OP6 R KEY SCALE",
+            "value": 0.5
+        },
+        {
+            "id": 151,
+            "name": "OP6 RATE SCALING",
+            "value": 0.5
+        },
+        {
+            "id": 152,
+            "name": "OP6 A MOD SENS.",
+            "value": 0.5
+        },
+        {
+            "id": 153,
+            "name": "OP6 KEY VELOCITY",
+            "value": 0.5
+        }
+
+    ]
+}

@@ -1,7 +1,23 @@
+# Test files
+playing/
+test_datasets/*
+test_waves/*
+data/*
+output/
+comparison/
+reconstruction_waves/
+reconstruction_waves*
+
+
+# To preserve file for Dave :/
+librenderman.so
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+
 
 # C extensions
 *.so

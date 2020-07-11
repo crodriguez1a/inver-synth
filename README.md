@@ -5,34 +5,76 @@
 
 ---
 
-*NOTE: This implementation is a work in progress. Contributions are welcome.*
+NOTE: This implementation is a **work in progress**. Contributions are welcome.
 
-### Generating a Training Set from Raw Audio
+## Installation
 
 ```
-python -m models.common.generate_dataset -w /path/to/wavs -s /path/to/data
+poetry shell
+poetry install
 ```
 
-This utility to reads a specified directory of `.wav` files and writes the output to a numpy array
-  with the shape `(n_samples, audio_channel, audio_length)`
+## Getting Started
 
-### Experimenting with the E2E & Spectrogram models
+```
+poetry run task start
+```
 
-First, assign values to following environment variables:
+## Generating a Training Set
 
-- `AUDIO_WAV_INPUT` - the input sound to attempt to match
+To use defaults:
+```
+poetry run task generate_sin
+```
 
-- `TRAINING_SET` - a path to training data
+To customize:
+```
+python -m generators.fm_generator
+```
 
-- `EPOCHS` - number of training epochs (default is 100 as prescribed in paper)
+Parameter | Default | Description
+---|---|---
+`--num_examples` | `150` | Number of examples to create
+`--name` | `InverSynth` | Naming convention for datasets
+`--dataset_directory` | `test_datasets` | Directory for datasets
+`--wavefile_directory` | `test_waves` | Directory to for wave files. Naming convention applied automatically
+`--length` | `1.0` | Length of each sample in seconds
+`--sample_rate` | `16384` | Sample rate (Samples/second)
+`--sampling_method` | `random` | Method to use for generating examples. Currently only random, but may include whole space later
+Optional |
+`--regenerate_samples` | | Regenerate the set of points to explore if it exists (will also force regenerating audio)
+`--regenerate_audio` | | Regenerate audio files if they exist
+`--normalise` | | Apply audio normalization
 
-- `EXPERIMENTATION` - when set to to `True`, will execute a predict function using the input sound
+This will generate a dataset attempting to recreate the generator as defined in the [paper](paper/1812.06349.pdf)
 
-- `SAVED_MODELS_PATH` - if set, will save weights to `h5` and architecture to `JSON`
 
-- `AUDIO_WAV_OUTPUT` - if set, will convert prediction output to raw audio and save as a `wav`
 
-Then run the following:
+### Experimenting with the E2E or Spectrogram models
+
+First, assign values to following environment variables in a `.env`:
+
+Parameter | Default | Description
+---|---|---
+`--model` | E2E: `e2e` <br><br>STFT: `C1` | Model architecture to run from the following: `C1`,`C2`,`C3`,`C4`,`C5`,`C6`,`C6XL`,`e2e`
+`--dataset_name` | `InverSynth` | Namespace of dataset generated
+Optional |
+`--epochs`| `100` | Number of epochs to run
+`--dataset_dir`| `test_datasets` | Directory full of datasets to use
+`--output_dir`| `output` | Directory where the final model and history will be saved
+`--dataset_file`| `None` | Specify an exact dataset file to use
+`--parameters_file`| `None` | Specify an exact parameters file to use
+`--data_format` | `channels_last` | Image data format for Keras. Select either `channels_last` or `channels_first`. Note: If CPU, only `channels_last` can be selected
+`--run_name` | Namespace for output files
+
+
+Selecting an architecture:
+
+- `C1`, `C2`, `C3`, `C4`, `C5`, `C6`, `C6XL`, `CE2E`, `CE2E_2D`
+
+![workflow](docs/img/architectures.png "Mimimun, Maximum")
+
+Training the models:
 
 >  End-to-End learning. A CNN predicts the synthesizer parameter configuration directly from the raw audio. The first
 convolutional layers perform 1D convolutions that learn an alternative representation for the STFT Spectrogram. Then, a
@@ -49,4 +91,12 @@ synthesizer parameter configuration. This configuration is then used to produce 
 
 ```
 python -m models.spectrogram_cnn
+```
+
+## Contributing
+
+To ensure passing builds, apply type checks, linting and formatting with:
+
+```
+poetry run task clean
 ```
