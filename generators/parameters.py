@@ -9,6 +9,8 @@ import json
 """
 A setting for a parameter, with its oneHOT encoding
 """
+
+
 @dataclass
 class ParamValue:
     name: str
@@ -19,14 +21,16 @@ class ParamValue:
 """
 A sample point - the parameter values, the oneHOT encoding and the audio
 """
+
+
 @dataclass
 class Sample:
-    #parameter_values: List[Tuple[str,float]]
+    # parameter_values: List[Tuple[str,float]]
     # parameter_encoding:List[List[float]]
     parameters: List[ParamValue]
     # length:float=0.1
-    #sample_rate:int = 44100
-    #audio:np.ndarray = np.zeros(1)
+    # sample_rate:int = 44100
+    # audio:np.ndarray = np.zeros(1)
 
     def value_list(self) -> List[Tuple[str, float]]:
         return [(p.name, p.value) for p in self.parameters]
@@ -56,15 +60,18 @@ class Parameter:
             # Actual value
             value=self.levels[index],
             # One HOT encoding
-            encoding=encoding)
+            encoding=encoding,
+        )
 
     def decode(self, one_hot: List[float]) -> ParamValue:
         ind = np.array(one_hot).argmax()
         return self.get_value(ind)
 
-    def from_output(self, current_output: List[float]) -> Tuple[ParamValue, List[float]]:
-        param_data = current_output[:len(self.levels)]
-        remaining = current_output[len(self.levels):]
+    def from_output(
+        self, current_output: List[float]
+    ) -> Tuple[ParamValue, List[float]]:
+        param_data = current_output[: len(self.levels)]
+        remaining = current_output[len(self.levels) :]
         my_val = self.decode(param_data)
         return (my_val, remaining)
 
@@ -89,7 +96,9 @@ class ParameterSet:
 
     # Runs through the whole parameter space, setting up parameters and calling the generation function
     # Excuse slightly hacky recusions - sure there's a more numpy-ish way to do it!
-    def recursively_generate_all(self, parameter_list: list = None, parameter_set=[], return_list=[]) -> Sequence[Sample]:
+    def recursively_generate_all(
+        self, parameter_list: list = None, parameter_set=[], return_list=[]
+    ) -> Sequence[Sample]:
         print("Generating entire parameter space")
         if parameter_list is None:
             parameter_list = self.parameters
@@ -109,13 +118,13 @@ class ParameterSet:
         params.update(dict(p.value_list()))
         return params
 
-    def encoding_to_settings(self,output:List[float])->Dict[str,float]:
+    def encoding_to_settings(self, output: List[float]) -> Dict[str, float]:
         params = self.fixed_parameters.copy()
         for p in self.decode(output):
             params[p.name] = p.value
         return params
 
-    def decode(self,output:List[float])->List[ParamValue]:
+    def decode(self, output: List[float]) -> List[ParamValue]:
         values = []
         for p in self.parameters:
             v, output = p.from_output(output)
@@ -125,12 +134,12 @@ class ParameterSet:
         return values
 
     def save(self, filename):
-        with open(filename, 'wb') as file:
+        with open(filename, "wb") as file:
             dump(self, file)
 
     def save_json(self, filename):
         dump = self.to_json()
-        with open(filename, 'w') as file:
+        with open(filename, "w") as file:
             json.dump(dump, file, indent=2)
 
     def explain(self):
@@ -140,13 +149,13 @@ class ParameterSet:
         return {
             "n_variable": len(self.parameters),
             "n_fixed": len(self.fixed_parameters),
-            "levels": levels
+            "levels": levels,
         }
 
     def to_json(self):
         return {
             "parameters": [p.to_json() for p in self.parameters],
-            "fixed": self.fixed_parameters
+            "fixed": self.fixed_parameters,
         }
 
 
@@ -161,7 +170,7 @@ For each parameter, the first and last classes correspond to its range limits
 
 def param_range(steps, min, max):
     ext = float(max - min)
-    return [n * ext/(steps-1) + min for n in range(steps)]
+    return [n * ext / (steps - 1) + min for n in range(steps)]
 
 
 """
@@ -171,4 +180,4 @@ paper: f = 2^(n/12)/ 440Hz with n in 0..15
 
 
 def freq_range(steps):
-    return [math.pow(2, n/12) * 440 for n in range(steps)]
+    return [math.pow(2, n / 12) * 440 for n in range(steps)]

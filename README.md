@@ -5,7 +5,14 @@
 
 ---
 
-*NOTE: This implementation is a work in progress. Contributions are welcome.*
+NOTE: This implementation is a **work in progress**. Contributions are welcome.
+
+## Installation
+
+```
+poetry shell
+poetry install
+```
 
 ## Generating a Training Set of Simple Sinusoidal Synthesis
 
