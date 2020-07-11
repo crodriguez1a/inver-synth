@@ -24,7 +24,7 @@ poetry run task start
 
 To use defaults:
 ```
-poetry run task generate_sin
+poetry run task generate
 ```
 
 To customize:
@@ -65,7 +65,7 @@ Optional |
 `--dataset_file`| `None` | Specify an exact dataset file to use
 `--parameters_file`| `None` | Specify an exact parameters file to use
 `--data_format` | `channels_last` | Image data format for Keras. Select either `channels_last` or `channels_first`. Note: If CPU, only `channels_last` can be selected
-`--run_name` | Namespace for output files
+`--run_name` | | Namespace for output files
 
 
 Selecting an architecture:
@@ -100,3 +100,5 @@ To ensure passing builds, apply type checks, linting and formatting with:
 ```
 poetry run task clean
 ```
+
+<!-- Git Commit Guidelines https://www.conventionalcommits.org/en/v1.0.0/ -->
