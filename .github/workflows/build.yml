@@ -8,6 +8,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Install libsndfile
+        run: sudo apt-get install libsndfile1
       - uses: actions/checkout@v1
         with:
           fetch-depth: 1
