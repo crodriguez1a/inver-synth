@@ -2,12 +2,20 @@
 name = "inver-synth"
 version = "0.1.0"
 description = "A Python implementation of the InverSynth method (Barkan, Tsiris, Koenigstein, Katz)"
-authors = ["crodriguez1a <crodriguez1a@gmail.com>"]
+authors = ["crodriguez1a <https://github.com/crodriguez1a>", "mo-seph <https://github.com/mo-seph>"]
 
 [tool.poetry.dependencies]
-python = ">=3.7,<3.9"
-tensorflow = "^2.2.0"
+python = "3.7"
 taskipy = "^1.2.1"
+synthplayer = "^2.4"
+python-dotenv = "^0.14.0"
+pandas = "^1.0.5"
+librosa = "^0.7.2"
+numba = "0.48"
+kapre = "^0.1.7"
+tensorflow = "2.1.0"
+tensorflow-estimator = "2.1.0"
+matplotlib = "^3.2.2"
 
 [tool.poetry.dev-dependencies]
 black = "^19.10b0"
@@ -17,11 +25,13 @@ flake8 = "^3.8.3"
 autoflake = "^1.3.1"
 pytest = "^5.4.3"
 
-[build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
-
 [tool.taskipy.tasks]
 test = "python -m pytest"
 lint = "flake8 models/ generators/ test/"
 format = "black models/ generators/ test/"
+start = "python -m tasks.start"
+generate_sin = "python -m generators.fm_generator"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

@@ -1,23 +1,8 @@
 import numpy as np
-
 from tensorflow import keras
 
-# import keras
-
-from models.app import (
-    summarize_compile,
-    fit,
-    data_format_audio,
-    train_val_split,
-    evaluate,
-)
-from models.common.utils import utils
 from models.common.architectures import cE2E_1d_layers, cE2E_2d_layers
-
-from models.common.data_generator import SoundDataGenerator
-
-from generators.generator import ParameterSet
-import pandas as pd
+from models.common.utils import utils
 
 """
 End-to-End learning. A CNN predicts the synthesizer
@@ -117,8 +102,8 @@ def get_model(
 
 
 if __name__ == "__main__":
-    from models.runner import standard_run_parser
     from models.app import train_model
+    from models.runner import standard_run_parser
 
     # Get a standard parser, and the arguments out of it
     parser = standard_run_parser()

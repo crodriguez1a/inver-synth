@@ -14,50 +14,61 @@ poetry shell
 poetry install
 ```
 
-## Generating a Training Set of Simple Sinusoidal Synthesis
-
-Create the following output directories:
+## Getting Started
 
 ```
-test_waves
-test_datasets
+poetry run task start
 ```
 
-Then run:
+## Generating a Training Set
+
+To use defaults:
+```
+poetry run task generate_sin
+```
+
+To customize:
 ```
 python -m generators.fm_generator
 ```
 
-This will generate a dataset of simple sinusoidal synthesis, which has:
+Parameter | Default | Description
+---|---|---
+`--num_examples` | `150` | Number of examples to create
+`--name` | `InverSynth` | Naming convention for datasets
+`--dataset_directory` | `test_datasets` | Directory for datasets
+`--wavefile_directory` | `test_waves` | Directory to for wave files. Naming convention applied automatically
+`--length` | `1.0` | Length of each sample in seconds
+`--sample_rate` | `16384` | Sample rate (Samples/second)
+`--sampling_method` | `random` | Method to use for generating examples. Currently only random, but may include whole space later
+Optional |
+`--regenerate_samples` | | Regenerate the set of points to explore if it exists (will also force regenerating audio)
+`--regenerate_audio` | | Regenerate audio files if they exist
+`--normalise` | | Apply audio normalization
 
-- training data in `test_datasets/`
-- wave files in `test_waves/`
+This will generate a dataset attempting to recreate the generator as defined in the [paper](paper/1812.06349.pdf)
 
 
-### Experimenting with the E2E & Spectrogram models
+
+### Experimenting with the E2E or Spectrogram models
 
 First, assign values to following environment variables in a `.env`:
 
-Required variables:
+Parameter | Default | Description
+---|---|---
+`--model` | `e2e` | Model architecture to run from the following: `C1`,`C2`,`C3`,`C4`,`C5`,`C6`,`C6XL`,`e2e`
+`--dataset_name` | `InverSynth` | Namespace of dataset generated
+Optional |
+`--epochs`| `100` | Number of epochs to run
+`--dataset_dir`| `test_datasets` | Directory full of datasets to use
+`--output_dir`| `output` | Directory where the final model and history will be saved
+`--dataset_file`| `None` | Specify an exact dataset file to use
+`--parameters_file`| `None` | Specify an exact parameters file to use
+`--data_format` | `channels_last` | Image data format for Keras. Select either `channels_last` or `channels_first`. Note: If CPU, only `channels_last` can be selected
+`--run_name` | Namespace for output files
 
-```
---model {C1,C2,C3,C4,C5,C6,C6XL,e2e}
---dataset_name DATASET_NAME
-```
 
-Optional variables:
-
-```
---epochs EPOCHS
---dataset_dir DATASET_DIR
---output_dir OUTPUT_DIR
---dataset_file DATASET_FILE
---parameters_file PARAMETERS_FILE
---data_format {channels_last,channels_first}
---run_name RUN_NAME
-```
-
-Selecting an architecture (default is `C1`):
+Selecting an architecture:
 
 - `C1`, `C2`, `C3`, `C4`, `C5`, `C6`, `C6XL`, `CE2E`, `CE2E_2D`
 
@@ -70,7 +81,7 @@ convolutional layers perform 1D convolutions that learn an alternative represent
 stack of 2D convolutional layers analyze the learned representation to predict the synthesizer parameter configuration.
 
 ```
-python -m models.e2e_cnn --model C3 --dataset_name inversynth_full
+python -m models.e2e_cnn
 ```
 
 or
@@ -79,9 +90,5 @@ or
 synthesizer parameter configuration. This configuration is then used to produce a sound that is similar to the input sound.
 
 ```
-python -m models.spectrogram_cnn --model C5 --dataset_name inversynth
+python -m models.spectrogram_cnn
 ```
-
-### Datasets
-
-See [GENERATING.md](GENERATING.md)

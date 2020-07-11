@@ -220,14 +220,14 @@ def default_generator_argparse():
         type=int,
         dest="samples",
         action="store",
-        default=64,
+        default=150,
         help="Number of examples to create",
     )
     parser.add_argument(
         "--name",
         type=str,
         dest="name",
-        required=True,
+        default="InverSynth",
         help="Name of datasets to create",
     )
     parser.add_argument(
@@ -296,6 +296,7 @@ def generate_examples(
         parameters=parameters,
         normalise=args.normalise,
     )
+
     g.create_parameters(
         max=args.samples, method=args.method, force_create=args.regenerate_samples
     )

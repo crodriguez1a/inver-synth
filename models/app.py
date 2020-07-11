@@ -1,23 +1,19 @@
-import os
-from tensorflow import keras
-import tensorflow as tf
-import tensorflow.keras.backend as K
-
-# import keras
 import logging
-import numpy as np
+import os
 from pathlib import Path
-from dotenv import load_dotenv
-import pandas as pd
 from pickle import load
-
-
 from typing import Callable, List
-from generators.generator import *
-from models.common.data_generator import SoundDataGenerator
 
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+from dotenv import load_dotenv
+from tensorflow import keras
+from tensorflow.keras import backend as K
 from tensorflow.keras.callbacks import CSVLogger
 
+from generators.generator import *
+from models.common.data_generator import SoundDataGenerator
 
 """Dotenv Config"""
 env_path = Path(".") / ".env"
@@ -119,6 +115,7 @@ def fit(
         # monitoring validation loss and metrics
         # at the end of each epoch
         validation_data=(x_val, y_val),
+        verbose=0
     )
 
     # The returned "history" object holds a record
@@ -351,31 +348,38 @@ def train_model(
     if checkpoint:
         callbacks.append(checkpoint_callback)
     callbacks.append(CSVLogger(history_file, append=True))
+
     # Fit the model
-    history = model.fit(
-        x=training_generator,
-        validation_data=validation_generator,
-        epochs=epochs,
-        callbacks=callbacks,
-        initial_epoch=initial_epoch,
-    )
+    history = None
+    try:
+        history = model.fit(
+            x=training_generator,
+            validation_data=validation_generator,
+            epochs=epochs,
+            callbacks=callbacks,
+            initial_epoch=initial_epoch,
+            verbose=0, # https://github.com/tensorflow/tensorflow/issues/38064
+        )
+    except Exception as e:
+        print(f"Something went wrong during `model.fit`: {e}")
 
     # Save model
     model.save(model_file)
 
     # Save history
-    try:
-        hist_df = pd.DataFrame(history.history)
+    if history:
         try:
-            fig = hist_df.plot(subplots=True, figsize=(8, 25))
-            fig[0].get_figure().savefig(history_graph_file)
-        except Exception as e:
-            print("Couldn't create history graph")
-            print(e)
+            hist_df = pd.DataFrame(history.history)
+            try:
+                fig = hist_df.plot(subplots=True, figsize=(8, 25))
+                fig[0].get_figure().savefig(history_graph_file)
+            except Exception as e:
+                print("Couldn't create history graph")
+                print(e)
 
-    except Exception as e:
-        print("Couldn't save history")
-        print(e)
+        except Exception as e:
+            print("Couldn't save history")
+            print(e)
 
     # evaluate prediction on random sample from validation set
     # Parameter data - needed for decoding!

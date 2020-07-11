@@ -13,14 +13,13 @@ def standard_run_parser() -> argparse.ArgumentParser:
         "--model",
         dest="model_name",
         type=str,
-        required=True,
         choices=["C1", "C2", "C3", "C4", "C5", "C6", "C6XL", "e2e"],
         default="e2e",
         help="Model architecture to run",
     )
     parser.add_argument(
         "--dataset_name",
-        required=True,
+        default="InverSynth",
         help='Name of the dataset to use - other filenames are generated from this. If you have a file "modelname_data.hdf5", put in "modelname"',
     )
     parser.add_argument(
