@@ -1,17 +1,11 @@
 import numpy as np
-
 # import keras
 from kapre.time_frequency import Spectrogram
 from tensorflow import keras
 
 from generators.generator import *
-from models.app import (
-    data_format_audio,
-    evaluate,
-    fit,
-    summarize_compile,
-    train_val_split,
-)
+from models.app import (data_format_audio, evaluate, fit, summarize_compile,
+                        train_val_split)
 from models.common.architectures import layers_map
 from models.common.data_generator import SoundDataGenerator
 from models.common.utils import utils

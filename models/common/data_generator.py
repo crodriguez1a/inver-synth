@@ -45,12 +45,13 @@ class SoundDataGenerator(keras.utils.Sequence):
         self.list_IDs = range(len(database["files"]))
 
         print(f"Number of examples in dataset: {len(self.list_IDs)}")
+        slice: int = 0
         if last > 0.0:
-            slice: int = int(n_points * (1 - last))
+            slice = int(n_points * (1 - last))
             self.list_IDs = self.list_IDs[slice:]
             print(f"Taking Last N points: {len(self.list_IDs)}")
         elif first > 0.0:
-            slice: int = int(n_points * first)
+            slice = int(n_points * first)
             self.list_IDs = self.list_IDs[:slice]
             print(f"Taking First N points: {len(self.list_IDs)}")
 

@@ -12,7 +12,7 @@ from tensorflow import keras
 from tensorflow.keras import backend as K
 from tensorflow.keras.callbacks import CSVLogger
 
-from generators.generator import *
+from generators.parameters import ParameterSet, ParamValue
 from models.common.data_generator import SoundDataGenerator
 
 """Dotenv Config"""

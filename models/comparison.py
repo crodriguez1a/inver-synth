@@ -1,12 +1,16 @@
+import json
 import os
 import pickle
 import re
 
+import h5py
+import numpy as np
 from scipy.io import wavfile
 from scipy.io.wavfile import write as write_wav
 from tensorflow import keras
 
-from generators.generator import *
+from generators.generator import InverSynthGenerator, SoundGenerator, VSTGenerator
+from generators.parameters import ParameterSet
 
 """
 This module generates comparisons - takes the original sound + params,

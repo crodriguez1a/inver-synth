@@ -29,7 +29,7 @@ class Utils:
 
     @property
     def fingerprint(self) -> str:
-        return uuid.uuid4()
+        return str(uuid.uuid4())
 
     def h5_save(self, model, save_path: str):
         if not save_path:

@@ -39,11 +39,11 @@ jobs:
       - name: isort
         run: poetry run isort . --check
 
-      - name: mypy
-        run: poetry run mypy models/
+      # - name: mypy
+      #   run: poetry run mypy models/
 
       - name: flake8
-        run: poetry run flake8 models/ --max-line-length 99
+        run: poetry run flake8 models/ generators/ --max-line-length 99
 
       - name: pytest
         run: poetry run pytest
