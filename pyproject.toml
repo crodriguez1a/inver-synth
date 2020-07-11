@@ -5,7 +5,7 @@ description = "A Python implementation of the InverSynth method (Barkan, Tsiris,
 authors = ["crodriguez1a <https://github.com/crodriguez1a>", "mo-seph <https://github.com/mo-seph>"]
 
 [tool.poetry.dependencies]
-python = "3.7"
+python = "^3.7"
 taskipy = "^1.2.1"
 synthplayer = "^2.4"
 python-dotenv = "^0.14.0"
