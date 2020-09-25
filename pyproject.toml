@@ -13,7 +13,7 @@ pandas = "^1.0.5"
 librosa = "^0.7.2"
 numba = "0.48"
 kapre = "^0.1.7"
-tensorflow = "2.1.0"
+tensorflow = "2.1.2"
 tensorflow-estimator = "2.1.0"
 matplotlib = "^3.2.2"
 
