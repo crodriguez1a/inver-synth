@@ -51,11 +51,8 @@ class VSTGenerator(SoundGenerator):
         #print( engine.get_plugin_parameters_description() )
         #print("Params to set:{}".format(parameters))
 
-        ids = dict([(p['name'], p['id'])
-                    for p in extra['config']['fixed_parameters']])
-        ids.update(dict([(p['name'], p['id'])
-                         for p in extra['config']['parameters']]))
 
+        ids = extra['config'].ids
         # if self.randomise_non_set:
         #new_patch = self.patch_generator.get_random_patch()
         # engine.set_patch(new_patch)
@@ -129,21 +126,16 @@ def run_generator(args):#name: str, plugin: str, config: str, max: int,
     if note_length < 0.0:
         note_length = length * 0.8
 
-    with open(args.config_file, 'r') as f:
-        config = json.load(f)
-    sample = [Parameter(p['name'],p['values'],p.get('id',"")) for p in config['parameters']]
-    fixed = dict([(p['name'],p['value']) for p in config['fixed_parameters']])
-
+    parameters = load_parameter_set(args.config_file)
+    #with open(args.config_file, 'r') as f:
+        #config = json.load(f)
     plugin_rate = args.generate_samplerate or args.sample_rate
 
     generate_examples(
         gen = VSTGenerator(vst=args.plugin, sample_rate=plugin_rate),
-        parameters=ParameterSet(
-            parameters = sample,
-            fixed_parameters = fixed
-        ),
+        parameters=parameters,
         args = args,
-        extra={'note_length': note_length, 'config': config}
+        extra={'note_length': note_length, 'config': parameters}
     )
 
 
