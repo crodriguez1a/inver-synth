@@ -6,6 +6,7 @@ import math
 from keras import Model
 
 from functools import lru_cache
+from models.common.utils import Utils
 
 import samplerate
 
@@ -19,7 +20,7 @@ class SoundfileGenerator(keras.utils.Sequence):
     TODO: work with multiple files
     '''
 
-    def __init__(self, audio_file: str, model: Model = None,
+    def __init__(self, files: list, model: Model = None,
                  batch_size=32, n_samps=16384,
                  sample_rate=16384,
                  shuffle=True, last: float = 0., first: float = 0.,
@@ -30,7 +31,6 @@ class SoundfileGenerator(keras.utils.Sequence):
         self.n_samps = n_samps
         self.batch_size = batch_size
         self.shuffle = shuffle
-        self.audio_file = audio_file
         self.n_channels = 1
         self.sample_rate = sample_rate
         # For the E2E model, need to return channels last?
@@ -39,15 +39,11 @@ class SoundfileGenerator(keras.utils.Sequence):
         else:
             self.expand_axis = 1
 
-        fs, data = wavfile.read(audio_file)
-        if fs != self.sample_rate:
-            ratio = self.sample_rate / fs
-            resamp = samplerate.resample(data, ratio, 'sinc_best')
-            print(f'Resampling from {self.sample_rate} to {sample_rate}, '
-                  f'ratio: {ratio}. Had {len(data)} samples, now {len(resamp)}')
-            data = resamp
-            data = data / 32767
-        self.data = data
+        self.data = []
+        if isinstance(files,str):
+            files = [files]
+        for f in  files:
+            self.data.extend(Utils.wav_to_keras(f,self.sample_rate))
 
         # set up list of IDs from data files
         n_points = math.floor(len(self.data) / n_samps)
