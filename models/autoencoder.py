@@ -3,6 +3,7 @@ from keras.models import Model
 from dataclasses import dataclass
 from tensorflow import keras
 from typing import List
+import h5py as h5
 
 from models.common.data_generator import SoundDataGenerator
 from models.common.soundfile_generator import SoundfileGenerator
@@ -31,43 +32,44 @@ class Autoencoder():
     decoder: Model
 
     def save(self, base_filename, model_name):
-        self.autoencoder.save(base_filename.format(model_name, "autoencoder")+".h5")
-        self.encoder.save(base_filename.format(model_name, "encoder")+".h5")
-        self.decoder.save(base_filename.format(model_name, "decoder")+".h5")
+        #h5.get_config().default_file_mode = 'rw'
         ae_js_fn = base_filename.format(model_name, "autoencoder")
         print(f"Saving AE to : {ae_js_fn}")
+        self.autoencoder.save(ae_js_fn+".h5")
         tfjs.converters.save_keras_model(self.autoencoder, ae_js_fn)
         en_js_fn = base_filename.format(model_name, "encoder")
         print(f"Saving Enc to : {en_js_fn}")
+        self.encoder.save(en_js_fn+".h5")
         tfjs.converters.save_keras_model(self.encoder,en_js_fn)
         de_js_fn = base_filename.format(model_name, "decoder")
         print(f"Saving Dec to : {de_js_fn}")
+        self.decoder.save(de_js_fn+".h5")
         tfjs.converters.save_keras_model(self.decoder,de_js_fn)
 
 
-def create_model(input_size: int = 300, encoding_size: int = 10):
+def create_autoencoder(input_size: int = 300, encoding_size: int = 10):
     '''
     Create an autoencoder model of the given shape
     '''
     # this is our input placeholder
-    input_img = Input(shape=(input_size,))
+    input_img = keras.Input(shape=(input_size,))
     # "encoded" is the encoded representation of the input
-    encoded = Dense(encoding_size, activation='relu')(input_img)
+    encoded = keras.layers.Dense(encoding_size, activation='relu')(input_img)
     # "decoded" is the lossy reconstruction of the input
-    decoded = Dense(input_size, activation='sigmoid')(encoded)
+    decoded = keras.layers.Dense(input_size, activation='sigmoid')(encoded)
 
     # this model maps an input to its reconstruction
-    autoencoder = Model(input_img, decoded)
+    autoencoder = keras.Model(input_img, decoded)
 
     # this model maps an input to its encoded representation
-    encoder = Model(input_img, encoded)
+    encoder = keras.Model(input_img, encoded)
 
     # create a placeholder for an encoded (32-dimensional) input
-    encoded_input = Input(shape=(encoding_size,))
+    encoded_input = keras.Input(shape=(encoding_size,))
     # retrieve the last layer of the autoencoder model
     decoder_layer = autoencoder.layers[-1]
     # create the decoder model
-    decoder = Model(encoded_input, decoder_layer(encoded_input))
+    decoder = keras.Model(encoded_input, decoder_layer(encoded_input))
 
     autoencoder.summary(line_length=80, positions=[.33, .65, .8, 1.])
     # The values in the blog train poorly; we use the values from the paper
@@ -115,7 +117,7 @@ def run_database(model_name):
     n_outputs = training_generator.get_label_size()
     print(f"Label size: {n_outputs}")
 
-    ae = create_model(input_size=n_outputs, encoding_size=encoding_size)
+    ae = create_autoencoder(input_size=n_outputs, encoding_size=encoding_size)
 
     train_on_parameters(ae,
                         training_generator=training_generator,
@@ -124,11 +126,9 @@ def run_database(model_name):
     ae.save("./output/{}_{}", model_name=model_name)
 
 
-def run_audio_file(model_file, audio_file, output_name):
-    print(f"Training autoencoder on {audio_file} using model {model_file}")
-    # All this should be from command line args
-    encoding_size = 5
-    epochs = 50
+def train_autoencoder_on_audio(model_name, output_name, audio_file, size=5, output_dir="./output", epochs=100):
+    model_file = f"{output_dir}/{model_name}.h5"
+    print(f"Training autoencoder on {audio_file} using model {model_file} with {size} dimensions ({epochs} epochs)")
 
     print("Loading model...")
     model = keras.models.load_model(model_file, custom_objects={
@@ -138,7 +138,7 @@ def run_audio_file(model_file, audio_file, output_name):
 
     # Get training and validation generators
     params = {
-        'audio_file': audio_file,
+        'files': audio_file,
         'batch_size': 64,
         'shuffle': True,
         'model':model
@@ -147,20 +147,55 @@ def run_audio_file(model_file, audio_file, output_name):
     validation_generator = SoundfileGenerator(last=0.2, **params)
     n_outputs = training_generator.get_label_size()
 
-    print(f"Creating Autoencoder, size = {encoding_size}")
-    ae = create_model(input_size=n_outputs, encoding_size=encoding_size)
+    print(f"Creating Autoencoder, i/o size = {n_outputs}, coded size = {size}")
+    ae = create_autoencoder(input_size=n_outputs, encoding_size=size)
     print("Autoencoder created... training...")
 
     train_on_parameters(ae,
                         training_generator=training_generator,
                         validation_generator=validation_generator,
                         epochs=epochs)
-    ae.save("./output/{}_{}", model_name=output_name)
+    ae.save(output_dir + "/{}_{}", model_name=output_name)
 
 
 if __name__ == "__main__":
-    #run_database( "inversynth_small")
-    audio_file = "./test_waves/ShortExample.wav"
-    model_file = "./output/dexed_2osc_e2e_best.h5"
-    model_file = "./output/lokomotiv_full_e2e_best.h5"
-    run_audio_file(model_file,audio_file,"lokomotiv_atcha")
+    import argparse
+    import glob
+    parser = argparse.ArgumentParser(description='''
+Train an Autoencoder to give a low dimensional representation of an existing model.
+This uses a piece of audio to build a model, so it won't have the full parameter space
+but will capture the qualities of the given audio in the reduced feature space.
+This means that you can create a preset of the synth with a few knobs, that works
+for a particular style or sonic area.
+
+The autoencoder will be saved as the complete model, but also the coder and decoder
+separately, so it can be easily used to give a low dimensional feature space.
+
+A typical pipeline might be:
+Audio -> Prediction Model -> Coder -> <here's some knobs to twiddle or interpolate> -> Decoder -> Synth
+
+''')
+    parser.add_argument('--model', dest='model_name', type=str, required=True,
+                        help='Name of existing model to work with (relative to model directory)')
+    parser.add_argument('--name', dest='output_name', type=str, required=True,
+                        help='Name of created model')
+    parser.add_argument('--audio_file', required=True, action='append',
+                        help='Path to the audio file to be used for training the autoencoder')
+    parser.add_argument('--size', type=int, default=5,
+                        help='How many dimensions to have in middle layer')
+    parser.add_argument('--epochs', type=int, default=100,
+                        help='How many epochs to run')
+    parser.add_argument('--model_dir', default='./output',
+                        help='Directory to find models and to save output')
+
+    args = parser.parse_args()
+    setup = vars(args)
+    filenames = []
+    for f in args.audio_file:
+        filenames.extend(glob.glob(f))
+    train_autoencoder_on_audio(model_name=args.model_name,
+            output_name=args.output_name,
+            audio_file=filenames,
+            size=args.size,
+            output_dir=args.model_dir,
+            epochs=args.epochs)
