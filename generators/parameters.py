@@ -5,28 +5,24 @@ import random
 from pickle import dump
 import math
 import json
+import regex
 
-"""
-A setting for a parameter, with its oneHOT encoding
-"""
 @dataclass
 class ParamValue:
+    """
+    A setting for a parameter, with its oneHOT encoding
+    """
     name: str
     value: float
     encoding: List[float]
 
 
-"""
-A sample point - the parameter values, the oneHOT encoding and the audio
-"""
 @dataclass
 class Sample:
-    #parameter_values: List[Tuple[str,float]]
-    # parameter_encoding:List[List[float]]
+    """
+    A sample point - the parameter values, the oneHOT encoding and the audio
+    """
     parameters: List[ParamValue]
-    # length:float=0.1
-    #sample_rate:int = 44100
-    #audio:np.ndarray = np.zeros(1)
 
     def value_list(self) -> List[Tuple[str, float]]:
         return [(p.name, p.value) for p in self.parameters]
@@ -36,6 +32,10 @@ class Sample:
 
 
 class Parameter:
+    """
+    Representation of a synthesis parameter: name, levels and an ID
+    """
+
     def __init__(self, name: str, levels: list, id=""):
         self.name = name
         self.levels = levels
@@ -49,6 +49,9 @@ class Parameter:
         return self.get_value(index)
 
     def get_value(self, index: int) -> ParamValue:
+        """ Returns the value for a given index, i.e. a parameter setting given
+        the argmax of a OneHOT encoding """
+
         encoding = np.zeros(len(self.levels)).astype(float)
         encoding[index] = 1.0
         return ParamValue(
@@ -59,23 +62,30 @@ class Parameter:
             encoding=encoding)
 
     def decode(self, one_hot: List[float]) -> ParamValue:
+        """ Decode a OneHOT array into a parameter value - could do something
+        more intelligent than value[argmax(input)] """
         ind = np.array(one_hot).argmax()
         return self.get_value(ind)
 
     def from_output(self, current_output: List[float]) -> Tuple[ParamValue, List[float]]:
+        """ Takes some portion of a OneHOT encoding, decodes the first N values
+        for this parameters value, and returns the ParamValue and remainder of
+        the list - designed to be rolled over an output vector """
         param_data = current_output[:len(self.levels)]
         remaining = current_output[len(self.levels):]
         my_val = self.decode(param_data)
         return (my_val, remaining)
 
     def to_json(self):
+        """ Returns a dict representing this parameter """
         return {"name": self.name, "levels": self.levels, "id": self.id}
 
 
 class ParameterSet:
-    def __init__(self, parameters: List[Parameter], fixed_parameters: dict = {}):
+    def __init__(self, parameters: List[Parameter], fixed_parameters: dict = {}, ids={}):
         self.parameters = parameters
         self.fixed_parameters = fixed_parameters
+        self.ids = ids
 
     def sample_space(self, sample_size=1000) -> Sequence[Sample]:
         print("Sampling {} points from parameter space".format(sample_size))
@@ -87,9 +97,13 @@ class ParameterSet:
                 print("Sampling iteration: {}".format(i))
         return dataset
 
-    # Runs through the whole parameter space, setting up parameters and calling the generation function
-    # Excuse slightly hacky recusions - sure there's a more numpy-ish way to do it!
-    def recursively_generate_all(self, parameter_list: list = None, parameter_set=[], return_list=[]) -> Sequence[Sample]:
+    def recursively_generate_all(self, parameter_list: list = None,
+                                 parameter_set=[],
+                                 return_list=[]) -> Sequence[Sample]:
+        """ Runs through the whole parameter space, setting up parameters and
+        calling the generation function Excuse slightly hacky recusions -
+        sure there's a more numpy-ish way to do it!
+        """
         print("Generating entire parameter space")
         if parameter_list is None:
             parameter_list = self.parameters
@@ -159,9 +173,9 @@ For each parameter, the first and last classes correspond to its range limits
 """
 
 
-def param_range(steps, min, max):
+def param_range(steps, min=0, max=1):
     ext = float(max - min)
-    return [n * ext/(steps-1) + min for n in range(steps)]
+    return [n * ext/(steps-1) + min for n in range(int(steps))]
 
 
 """
@@ -170,5 +184,74 @@ paper: f = 2^(n/12)/ 440Hz with n in 0..15
 """
 
 
-def freq_range(steps):
-    return [math.pow(2, n/12) * 440 for n in range(steps)]
+def freq_range(steps,base=440):
+    return [math.pow(2, n/12) * base for n in range(int(steps))]
+
+def switch_range(steps):
+    size = 1 / steps
+    return [n * size + (size/2) for n in range(int(steps))]
+
+def replace_values(input,subs={}):
+    # Return lists straight away
+    if isinstance(input,list):
+        return input
+    # String we look at a direct sub, or calling a function
+    if isinstance(input,str):
+        if input in subs:
+            return subs[input]
+        m = regex.match('(\w+)(?:\s+([\d.]+))*', input)
+        if m:
+            function = m.captures(1)[0]
+            print(f"got function: {function}")
+            args = [float(d) for d in m.captures(2)]
+            print(f"got args: {args}")
+            if function == "steps":
+                return param_range(*args)
+            elif function == "semitones":
+                return freq_range(*args)
+            elif function == "switch":
+                return switch_range(*args)
+            else:
+                print(f"Bad function: {function}")
+        else:
+            print(f"bad string: {input}")
+            return input
+
+
+
+
+def load_parameter(data,subs={}) -> Parameter:
+    name = data['name']
+    values = replace_values(data['values'],subs)
+    id = data.get('id',"")
+    return Parameter(name,values,id)
+
+def load_parameter_set(parameters_file):
+    print(f"Loading parameters from: {parameters_file}")
+    with open(parameters_file, 'r') as f:
+        config = json.load(f)
+        #variable = [Parameter(p['name'],p['values'],p.get('id',"")) for p in config['parameters']]
+        subs = config.get('substitutions', {})
+        variable = [load_parameter(p,subs) for p in config['parameters']]
+        fixed = dict([(p['name'],p['value']) for p in config['fixed_parameters']])
+        ids = dict([(p['name'], p['id']) for p in config['fixed_parameters']])
+        ids.update(dict([(p['name'], p['id']) for p in config['parameters']]))
+        print(f"Fixed: {fixed}")
+        parameters=ParameterSet(
+            parameters = variable,
+            fixed_parameters = fixed,
+            ids = ids
+        )
+        print(f"Loaded parameter set: {parameters.explain()}")
+        return parameters
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description='Quickly read in a parameters file and output info')
+    parser.add_argument('--file',  type=str,
+                        help='Parameter file to parse')
+    args = parser.parse_args()
+    parameters = load_parameter_set(args.file)
+    for p in parameters.parameters:
+        print(f"[{len(p.levels)}]\t{p.name}")
+        #print(f"[{p.levels}]\t{p.name}")
