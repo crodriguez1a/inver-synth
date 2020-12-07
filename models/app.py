@@ -7,7 +7,7 @@ import tensorflow.keras.backend as K
 import logging
 import numpy as np
 from pathlib import Path
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 import pandas as pd
 from pickle import load
 
@@ -22,7 +22,7 @@ from tensorflow.keras.callbacks import CSVLogger
 
 """Dotenv Config"""
 env_path = Path('.') / '.env'
-load_dotenv(dotenv_path=env_path)
+#load_dotenv(dotenv_path=env_path)
 
 
 """Data Utils"""
@@ -80,6 +80,7 @@ def summarize_compile(model: keras.Model):
                   # Loss function to minimize
                   # @paper: Therefore, we converged on using sigmoid activations with binary cross entropy loss.
                   loss=keras.losses.BinaryCrossentropy(),
+                  #loss="categorical_crossentropy",
                   # List of metrics to monitor
                   metrics=[
                       # @paper: 1) Mean Percentile Rank?
@@ -207,6 +208,15 @@ def data_format_audio(audio: np.ndarray, data_format: str) -> np.ndarray:
 
     return audio
 
+"""
+Load in a Keras model, ready to go
+"""
+def load_model(model_path:str):
+    model = keras.models.load_model(model_path,custom_objects={
+        'top_k_mean_accuracy':top_k_mean_accuracy
+    })
+    return model
+
 
 """
 Wrap up the whole training process in a standard function. Gets a callback
@@ -275,6 +285,7 @@ def train_model(
 
     # set keras image_data_format
     # NOTE: on CPU only `channels_last` is supported
+    print("Setting Data format: {}".format(data_format))
     keras.backend.set_image_data_format(data_format)
 
     model : keras.Model = None
@@ -287,6 +298,8 @@ def train_model(
             'top_k_mean_accuracy':top_k_mean_accuracy
         })
     else:
+        print("Creating model. Name: {}, Num Inputs: {}, Output: {}, Format: {}".format(
+            model_name,n_samples,n_outputs,data_format))
         model = model_callback(model_name=model_name,
                                             inputs=n_samples,
                                             outputs=n_outputs,
