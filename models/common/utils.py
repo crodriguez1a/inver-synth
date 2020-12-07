@@ -3,6 +3,8 @@ import librosa
 import numpy as np
 import uuid
 
+from scipy.io import wavfile
+import samplerate
 
 class Utils:
     @staticmethod
@@ -52,6 +54,17 @@ class Utils:
         labels = np.random.uniform(size=size)
         return labels
 
+    @staticmethod
+    def wav_to_keras(audio_file,sample_rate):
+        fs, data = wavfile.read(audio_file)
+        if fs != sample_rate:
+            ratio = sample_rate / fs
+            resamp = samplerate.resample(data, ratio, 'sinc_best')
+            print(f'Resampling from {fs} to {sample_rate}, '
+                  f'ratio: {ratio}. Had {len(data)} samples, now {len(resamp)}')
+            data = resamp
+            data = data / 32767
+        return data
 
 # export initialized
 utils: Utils = Utils()
