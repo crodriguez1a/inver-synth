@@ -2,6 +2,8 @@
 playing/
 test_datasets/*
 test_waves/*
+datasets/*
+waves/*
 data/*
 output/
 comparison/
