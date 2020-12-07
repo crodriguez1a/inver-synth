@@ -1,0 +1,101 @@
+{
+    "fixed_parameters": [
+      { "id": 0, "name": "BPM Sync On/Off",
+          "value": 0.0
+      },
+      { "id": 21, "name": "Keyboard Tracking Amount",
+          "value": 0.5
+      },
+      { "id": 27, "name": "Pitch Bend Range",
+          "value": 0.5
+      },
+      { "id": 28, "name": "ModWheel Target select",
+          "value": 0.0
+      },
+      { "id": 29, "name": "Velocity Target select",
+          "value": 0.0
+      },
+      { "id": 30, "name": "Portamento Speed",
+          "value": 0.0
+      },
+      { "id": 26, "name": "Amp Volume",
+          "value": 1.0
+      },
+      { "id": 25, "name": "Amp Env/Gate Select",
+          "value": 0.0
+      },
+      { "id": 17, "name": "PhonicType",
+          "value": 0.0
+      }
+
+    ],
+    "parameters": [
+        { "id": 1, "name": "LFO Type select",
+            "values": [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+        },
+        { "id": 3, "name": "LFO Target select",
+            "values": [0.0, 0.25, 0.5, 0.75, 1.0]
+        },
+        { "id": 23, "name": "Drive Pre/Post Switch",
+            "values": [0.0, 1.0]
+        },
+        { "id": 18, "name": "Filter Type select",
+            "values": [0.0, 0.5, 1.0]
+        },
+        { "id": 2, "name": "LFO Speed",
+          "values": "steps 5"
+        },
+        { "id": 4, "name": "LFO Amount",
+          "values": "steps 5"
+        },
+        { "id": 5, "name": "Osc HardSync Amount",
+          "values": "steps 5"
+        },
+        { "id": 6, "name": "Osc PW Amount",
+          "values": "steps 5"
+        },
+        { "id": 7, "name": "Osc Saw Detune Amount",
+          "values": "steps 5"
+        },
+        { "id": 8, "name": "Sub Osc Waveform",
+          "values": "steps 5"
+        },
+        { "id": 9, "name": "Osc Noise Amount",
+          "values": "steps 5"
+        },
+        { "id": 10, "name": "Osc Saw Amount",
+          "values": "steps 5"
+        },
+        { "id": 11, "name": "Osc Pulse Amount",
+          "values": "steps 5"
+        },
+        { "id": 12, "name": "Sub Osc Amount",
+          "values": "steps 5"
+        },
+        { "id": 13, "name": "Env Attack",
+          "values": "steps 5"
+        },
+        { "id": 14, "name": "Env Decay",
+          "values": "steps 5"
+        },
+        { "id": 15, "name": "Env Sustain",
+          "values": "steps 5"
+        },
+        { "id": 16, "name": "Env Release",
+          "values": "steps 5"
+        },
+        { "id": 19, "name": "Cutoff Amount",
+          "values": "steps 5"
+        },
+        { "id": 20, "name": "Resonance Amount",
+          "values": "steps 5"
+        },
+        { "id": 22, "name": "Envelope Amount",
+          "values": "steps 5"
+        },
+        { "id": 24, "name": "Drive Amount",
+          "values": "steps 5"
+        }
+
+    ]
+}
