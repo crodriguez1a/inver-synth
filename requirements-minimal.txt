@@ -1,0 +1,9 @@
+tensorflow
+keras
+kapre==0.1.7
+pandas
+regex
+samplerate
+synthplayer
+common
+tensorflowjs
