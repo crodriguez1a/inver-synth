@@ -1,0 +1,17 @@
+Run results:
+- dx6_fine_large (40k)
+87 Parameters with 1763 levels (fixed: 68)
+Got 0 out of 64 (0.0% perfect); Exact params: 10.0%, Close params: 20.0%
+
+- dx6_coarse_large (40k)
+87 Parameters with 439 levels (fixed: 68)
+Got 0 out of 64 (0.0% perfect); Exact params: 28.7%, Close params: 58.5%
+
+
+- dx2_fine_large (40k)
+39 Parameters with 779 levels (fixed: 116)
+Got 0 out of 64 (0.0% perfect); Exact params: 13.9%, Close params: 24.4%
+
+- dx2_coarse_large (40k)
+39 Parameters with 219 levels (fixed: 116)
+Got 0 out of 64 (0.0% perfect); Exact params: 37.3%, Close params: 62.3%
