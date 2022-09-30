@@ -15,7 +15,7 @@ google-pasta==0.2.0
 grpcio==1.27.2
 h5py==2.10.0
 idna==2.9
-joblib==0.14.1
+joblib==1.2.0
 kapre==0.1.7
 keras-applications==1.0.8
 keras-preprocessing==1.1.0
