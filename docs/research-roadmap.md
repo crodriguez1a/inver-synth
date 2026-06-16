@@ -182,15 +182,41 @@ the Synthetroniq library. Pretrained latent audio diffusion models (AudioLDM2, S
 Open) use exactly this signal as their conditioning input. This means pitch-transposed patch
 audio may be achievable without any parameter estimation or custom training.
 
-**Sub-path A — Zero-shot / prompting (days)**
+**Sub-path A — Zero-shot / prompting (days) — EXPERIMENT COMPLETED 2026-06-16**
 
 Use an existing CLAP-conditioned diffusion model as-is. Condition on the patch's CLAP
 embedding + a pitch-description string ("C4 sine tone", "middle C note"). No fine-tuning.
 This is the "much simpler" version: the pretrained model already knows how to generate
 audio from CLAP embeddings; we just need to steer it toward the right pitch.
 
-Risk: general-purpose models may not generate clean, instrument-like single notes on demand
-without further conditioning. Worth evaluating before committing to training.
+**Results (model: `cvssp/audioldm2-music`, 20 steps, 3 s, MPS, seed 42)**
+
+Script: `benchmarks/diffusion_experiment.py`
+Data:   `benchmarks/results/diffusion_experiment_20260616/`
+
+| Patch | Type | CLAP sim | vs baseline |
+|---|---|---|---|
+| Roland JV-1080 / Jet Pad 2 | warm pad | **0.545** | +96% above baseline |
+| Alesis Quadrasynth / 101-Gulch | piano ROMpler | 0.370 | +33% |
+| Alesis Airsynth / 14-LFO-Abuse | FM-like lead | 0.333 | +20% |
+| Yamaha DX100 / 16-Mono-Sax | FM saxophone | **0.251** | ≈ baseline (0.278) |
+
+Cross-patch baseline (avg pairwise CLAP sim between the 4 patches): **0.278**
+
+Key findings:
+1. **Pads and common timbres**: 0.545 — well above baseline, AudioLDM2-music clearly
+   understands "warm ambient pad" at the timbral level. Promising path for non-FM patches.
+2. **FM synthesis**: DX100 sax (0.251) is barely at baseline — the model has no specific
+   knowledge of FM synthesis as a distinct timbral category.
+3. **Short vs long prompts**: identical scores in every case. The `transcription` parameter
+   (FLAN-T5 branch) had no measurable effect. CLAP text conditioning alone drives results.
+4. **Inference speed**: ~3–4 s per clip on Apple M-series MPS at 20 steps (fast).
+
+**Interpretation**: Zero-shot works well enough for broad timbre categories (pads, pianos)
+but not for synthesis-specific sounds (FM, wavetable). Sub-path B (fine-tuning on the
+patch library) is needed to get the model to understand FM synthesis as a timbre family.
+The FLAN-T5 branch not contributing is a compatibility artifact of diffusers 0.38 + the
+cvssp checkpoint — a known issue noted in the script.
 
 **Sub-path B — Fine-tune on the patch library (1–2 weeks)**
 

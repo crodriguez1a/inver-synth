@@ -1,0 +1,83 @@
+{
+  "date": "20260616",
+  "model": "cvssp/audioldm2-music",
+  "steps": 20,
+  "length_s": 3.0,
+  "device": "mps",
+  "n_patches": 4,
+  "cross_patch_baseline": 0.278,
+  "short_prompt_mean": 0.3746,
+  "long_prompt_mean": 0.3746,
+  "short_prompt_max": 0.5453,
+  "long_prompt_max": 0.5453,
+  "patches": [
+    {
+      "label": "Alesis Airsynth/14-LFO-Abuse.flac",
+      "note": "FM-like, inver-synth confidence 62%",
+      "tags": [
+        "bright",
+        "lead",
+        "flute",
+        "organ",
+        "bass"
+      ],
+      "short": "FM digital synthesizer, bright metallic harmonic lead, LFO modulation, electronic synth patch",
+      "long": "A bright digital FM synthesis lead patch with rapid LFO modulation creating a shimmering, metallic texture. Clean single note, no percussion.",
+      "short_sim": 0.3327,
+      "short_wav": "Alesis Airsynth_14-LFO-Abuse_short.wav",
+      "long_sim": 0.3327,
+      "long_wav": "Alesis Airsynth_14-LFO-Abuse_long.wav"
+    },
+    {
+      "label": "Yamaha Dx100/16-Mono-Sax.flac",
+      "note": "FM hardware saxophone patch, confidence 41%",
+      "tags": [
+        "detuned",
+        "resonant",
+        "clean",
+        "aggressive",
+        "organ"
+      ],
+      "short": "Yamaha DX FM synthesizer saxophone, bright digital wind instrument, monophonic synth",
+      "long": "A Yamaha DX series FM synthesizer patch emulating a saxophone. Bright, slightly buzzy digital timbre with the characteristic DX attack transient. Single sustained note.",
+      "short_sim": 0.2507,
+      "short_wav": "Yamaha Dx100_16-Mono-Sax_short.wav",
+      "long_sim": 0.2507,
+      "long_wav": "Yamaha Dx100_16-Mono-Sax_long.wav"
+    },
+    {
+      "label": "Roland Jv 1080/U-010-Jet-Pad-2.flac",
+      "note": "warm pad, ROMpler digital synth",
+      "tags": [
+        "pad",
+        "organ",
+        "warm",
+        "bright",
+        "spacious"
+      ],
+      "short": "warm ambient pad synthesizer, lush atmospheric texture, spacious digital synth pad, Roland",
+      "long": "A lush, slow-attack ambient pad synthesizer with warm, spacious texture. Gentle layered tones with soft reverb tail. No melody or rhythm, just sustained atmospheric sound.",
+      "short_sim": 0.5453,
+      "short_wav": "Roland Jv 1080_U-010-Jet-Pad-2_short.wav",
+      "long_sim": 0.5453,
+      "long_wav": "Roland Jv 1080_U-010-Jet-Pad-2_long.wav"
+    },
+    {
+      "label": "Alesis Quadrasynth Plus Piano/101-Gulch.flac",
+      "note": "piano ROMpler, inver-synth confidence 5%",
+      "tags": [
+        "detuned",
+        "dark",
+        "aggressive",
+        "spacious",
+        "swelling"
+      ],
+      "short": "acoustic piano sample, warm concert grand piano, natural piano tone",
+      "long": "An acoustic concert grand piano sample. Warm, natural timbre with clear attack transient and sustained decay. Single note, no accompaniment.",
+      "short_sim": 0.3698,
+      "short_wav": "Alesis Quadrasynth Plus Piano_101-Gulch_short.wav",
+      "long_sim": 0.3698,
+      "long_wav": "Alesis Quadrasynth Plus Piano_101-Gulch_long.wav"
+    }
+  ]
+}

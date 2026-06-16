@@ -38,6 +38,7 @@ jobs:
                   training/generate_embeddings.py training/train.py \
                   inference/infer.py \
                   benchmarks/library_confidence.py \
+                  benchmarks/diffusion_experiment.py \
                   --max-line-length 99 \
                   --extend-ignore E221,E226,E241,E272
 
