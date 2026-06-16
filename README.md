@@ -159,12 +159,13 @@ Training time: ~10–12 min on MPS for 200 epochs, 50k clips.
 
 ## Research roadmap
 
-Four paths to improve quality, documented in [`docs/research-roadmap.md`](docs/research-roadmap.md):
+Five paths to improve quality, documented in [`docs/research-roadmap.md`](docs/research-roadmap.md):
 
 1. **Perceptual loss** — add re-synthesis cosine loss during training (~2 days)
 2. **Real DX7 data** — train on rendered Yamaha DX7 sysex banks (~3–4 days)
 3. **Differentiable synthesis** — rewrite fm2op in PyTorch, backprop through the synth (~1 week)
 4. **Neural timbre transfer** — CLAP-conditioned vocoder, works for all patch types (~2 weeks)
+5. **Audio diffusion** — use a pretrained CLAP-conditioned diffusion model (AudioLDM2, Stable Audio Open); zero-shot sub-path A may work without any training
 
 Current blocker: the model approximates ~28% of the library well. FM hardware patches
 score higher (Yamaha DX100: ~41%, Alesis Airsynth: 62%). The melody feature in

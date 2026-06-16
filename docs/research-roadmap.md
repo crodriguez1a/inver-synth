@@ -173,6 +173,66 @@ This approach generalises to the full library — sampled instruments, wavetable
 digital — not just FM-approximable sounds. The tradeoff is training complexity and the need
 for a neural inference runtime at the backend.
 
+### Path 5 — CLAP-conditioned audio diffusion
+*Effort: days to weeks depending on approach. Potentially the highest quality path and
+the most natural architectural fit.*
+
+The most important observation: we already have a 512-dim CLAP embedding for every patch in
+the Synthetroniq library. Pretrained latent audio diffusion models (AudioLDM2, Stable Audio
+Open) use exactly this signal as their conditioning input. This means pitch-transposed patch
+audio may be achievable without any parameter estimation or custom training.
+
+**Sub-path A — Zero-shot / prompting (days)**
+
+Use an existing CLAP-conditioned diffusion model as-is. Condition on the patch's CLAP
+embedding + a pitch-description string ("C4 sine tone", "middle C note"). No fine-tuning.
+This is the "much simpler" version: the pretrained model already knows how to generate
+audio from CLAP embeddings; we just need to steer it toward the right pitch.
+
+Risk: general-purpose models may not generate clean, instrument-like single notes on demand
+without further conditioning. Worth evaluating before committing to training.
+
+**Sub-path B — Fine-tune on the patch library (1–2 weeks)**
+
+Fine-tune a pretrained CLAP-conditioned diffusion model on (CLAP_embedding, pitch, audio)
+triples generated from the existing 6920 previews:
+
+```
+for each patch:
+    for each pitch in [C2, E2, G2, C3, ..., C6]:   # ~30 pitches
+        render pitched variant via existing pitch-shift
+        pair with patch CLAP embedding
+→ ~200k training pairs, no new data collection needed
+```
+
+The fine-tuned model generates audio "in the style of" any CLAP embedding at any target
+pitch. Generalises to the full library by construction.
+
+**Sub-path C — Diffusion in parameter space (1 week)**
+
+Instead of a deterministic MLP regression (Path 1–3), use a diffusion process in the
+synthesizer parameter space conditioned on the CLAP embedding. Models the full posterior
+distribution — a given timbre can map to multiple valid parameter configurations — and
+samples from it. Related to DiffSynth-style approaches. Highest quality within the
+FM-synthesis constraint; does not solve the expressiveness ceiling.
+
+**Comparison to Path 4**
+
+Path 4 (neural vocoder) and Path 5B (fine-tuned diffusion) both generalise to all patch
+types. The practical differences:
+
+| | Path 4 (vocoder) | Path 5B (diffusion) |
+|---|---|---|
+| Training data | existing previews + pitch variants | same |
+| Inference speed | real-time (10–50ms) | 0.5–5s per note |
+| Audio quality ceiling | good | higher |
+| Model size | 50–200MB | 500MB–2GB |
+| Pitch control | explicit (f0 conditioning) | via embedding + text |
+
+For the Synthetroniq melody use case (render ~5 notes, latency not critical), diffusion
+quality ceiling may be worth the inference cost. Sub-path A is the right first experiment —
+zero cost to try.
+
 ---
 
 ## Re-enabling the feature
