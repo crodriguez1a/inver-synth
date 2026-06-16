@@ -212,11 +212,16 @@ Key findings:
    (FLAN-T5 branch) had no measurable effect. CLAP text conditioning alone drives results.
 4. **Inference speed**: ~3–4 s per clip on Apple M-series MPS at 20 steps (fast).
 
-**Interpretation**: Zero-shot works well enough for broad timbre categories (pads, pianos)
-but not for synthesis-specific sounds (FM, wavetable). Sub-path B (fine-tuning on the
-patch library) is needed to get the model to understand FM synthesis as a timbre family.
-The FLAN-T5 branch not contributing is a compatibility artifact of diffusers 0.38 + the
-cvssp checkpoint — a known issue noted in the script.
+**Interpretation**: The numbers overstate the result. Listening confirms that the
+generated piano clip is atmospheric and texturally "keyboard-adjacent" — it shares a broad
+category with the original but reproduces none of the fundamental timbre: no attack
+transient, no harmonic series, no characteristic decay envelope. The 0.370 CLAP similarity
+captures "both are musical/piano-ish" not "same instrument."
+
+Zero-shot diffusion generates *mood*, not *timbre*. For instrument-specific reproduction,
+Sub-path B (fine-tuning on the 6920-patch library with pitch variants) is required. The
+model needs to learn the difference between "sounds piano-adjacent" and "sounds like this
+specific patch at this pitch."
 
 **Sub-path B — Fine-tune on the patch library (1–2 weeks)**
 
