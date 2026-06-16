@@ -39,7 +39,7 @@ ground-truth parameters.
 
 ## Library confidence results (2026-06-16)
 
-50 patches sampled uniformly across 50 brands from the Synthetroniq patch library (6920 patches).
+50 patches sampled uniformly across 50 brands from a 6920-patch synth library.
 Full results in `benchmarks/results/library_confidence_20260616.json`.
 
 | Statistic | Score |
@@ -178,7 +178,7 @@ for a neural inference runtime at the backend.
 the most natural architectural fit.*
 
 The most important observation: we already have a 512-dim CLAP embedding for every patch in
-the Synthetroniq library. Pretrained latent audio diffusion models (AudioLDM2, Stable Audio
+the library. Pretrained latent audio diffusion models (AudioLDM2, Stable Audio
 Open) use exactly this signal as their conditioning input. This means pitch-transposed patch
 audio may be achievable without any parameter estimation or custom training.
 
@@ -260,7 +260,7 @@ types. The practical differences:
 | Model size | 50–200MB | 500MB–2GB |
 | Pitch control | explicit (f0 conditioning) | via embedding + text |
 
-For the Synthetroniq melody use case (render ~5 notes, latency not critical), diffusion
+For the melody use case (render ~5 notes, latency not critical), diffusion
 quality ceiling may be worth the inference cost. Sub-path A is the right first experiment —
 zero cost to try.
 
@@ -268,13 +268,12 @@ zero cost to try.
 
 ## Re-enabling the feature
 
-The melody button in the Flutter app is disabled via `_melodyEnabled = false` in
-`mobile/lib/features/search/widgets/result_card.dart`. Set it to `true` to restore
-the button, confidence bar, and lazy confidence fetch.
+The melody feature is currently parked in the consumer application pending quality
+improvements. When ready to re-enable, set `_melodyEnabled = true` in the relevant
+result card widget.
 
-The backend endpoints remain intact:
+The backend integration points expected by the consumer:
 - `GET /audio/melody?label=...` — renders FM melody via InverSynth (falls back to pitch-shift)
 - `GET /audio/melody/confidence?label=...` — returns re-synthesis cosine similarity score
 
-The backend loads InverSynth from `SYNTHETRONIQ_INVERSYNTH_CHECKPOINT` at startup.
-Use `make macos-inversynth` or `make backend-inversynth` to start with it enabled.
+The backend loads InverSynth from a checkpoint path set at startup via an env var.

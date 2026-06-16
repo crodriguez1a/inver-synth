@@ -2,27 +2,34 @@
 """
 Path 5A — Zero-shot CLAP-conditioned audio diffusion experiment.
 
-AudioLDM2-music generates synthesizer patch audio conditioned on text prompts
-derived from tagger output. We measure CLAP cosine similarity between the
-generated audio and the original patch to evaluate how much pretrained
-diffusion models understand synthesizer timbres without fine-tuning.
+AudioLDM2-music generates synthesizer patch audio conditioned on text prompts.
+We measure CLAP cosine similarity between the generated audio and the original
+patch to evaluate how much pretrained diffusion models understand synthesizer
+timbres without fine-tuning.
 
 Two prompting strategies are tested per patch:
-  • short:  CLAP-branch keywords (tagger tags + timbre description)
+  • short:  CLAP-branch keywords (timbre description)
   • long:   FLAN-T5 branch transcription (more descriptive sentence)
 
 Usage:
     cd /path/to/inver-synth
-    python benchmarks/diffusion_experiment.py [--steps 20] [--length 3.0]
+    python benchmarks/diffusion_experiment.py --audio-dir /path/to/previews
+
+    # Or provide individual audio files:
+    python benchmarks/diffusion_experiment.py \\
+        --audio-dir /path/to/previews \\
+        --patches "Brand/Patch.flac:prompt text"
 
 Results saved to benchmarks/results/diffusion_experiment_YYYYMMDD/
+
+Dependencies: torch, transformers, diffusers, soundfile, scipy, numpy
+Install:  pip install -r requirements-revival.txt diffusers accelerate
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import sys
 from datetime import date
 from pathlib import Path
 
@@ -30,22 +37,14 @@ import numpy as np
 import scipy.signal
 import soundfile as sf
 
-# ── Paths ──────────────────────────────────────────────────────────────────────
+# ── Constants ─────────────────────────────────────────────────────────────────
 
-SYNTH_ROOT  = Path("/Users/carlosrodriguez/Projects/synthetroniq")
-PREVIEWS    = SYNTH_ROOT / "data/previews"
 REPO_ROOT   = Path(__file__).resolve().parent.parent
 RESULTS_DIR = REPO_ROOT / "benchmarks" / "results"
 
-# Add Synthetroniq backend to sys.path so we can reuse its CLAP encoder.
-sys.path.insert(0, str(SYNTH_ROOT / "backend"))
-
-# ── Experiment patches ─────────────────────────────────────────────────────────
-# Chosen for diversity: FM hardware, analog-ish pad, ROMpler piano.
-# Short prompt → CLAP text encoder (keyword conditioning).
-# Long prompt  → FLAN-T5 branch (`transcription` param) for richer detail.
-
-PATCHES = [
+# Default patches — relative paths under --audio-dir.
+# Override with --audio-dir pointing to your own preview directory.
+DEFAULT_PATCHES = [
     {
         "label": "Alesis Airsynth/14-LFO-Abuse.flac",
         "note":  "FM-like, inver-synth confidence 62%",
@@ -74,10 +73,10 @@ PATCHES = [
 
 AUDIOLDM2_MODEL = "cvssp/audioldm2-music"
 SR_GEN          = 16_000  # AudioLDM2 native output sample rate
-SR_CLAP         = 48_000  # CLAP encoder input sample rate
+SR_CLAP         = 48_000  # CLAP encoder requirement
 
 
-# ── Helpers ────────────────────────────────────────────────────────────────────
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _resample(audio: np.ndarray, sr_in: int, sr_out: int) -> np.ndarray:
     if sr_in == sr_out:
@@ -96,49 +95,72 @@ def _cosine(a: np.ndarray, b: np.ndarray) -> float:
     return float(np.dot(a, b))
 
 
-# ── Main ───────────────────────────────────────────────────────────────────────
+def _embed(model: object, audio: np.ndarray) -> np.ndarray:
+    """Embed audio via the ClapMlpHead backbone (CLAP, frozen, 512-dim)."""
+    clip = audio[:int(3.0 * SR_CLAP)]  # first 3 s is enough for CLAP
+    return model.embed(clip, sr=SR_CLAP)
+
+
+# ── Main ──────────────────────────────────────────────────────────────────────
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--steps",  type=int,   default=20,   help="Diffusion inference steps")
-    parser.add_argument("--length", type=float, default=3.0,  help="Generated clip length (s)")
-    parser.add_argument("--device", type=str,   default="mps", help="torch device")
+    parser.add_argument("--audio-dir", type=Path, default=None,
+                        help="Root directory containing preview audio files")
+    parser.add_argument("--steps",    type=int,   default=20,
+                        help="Diffusion inference steps (default: 20)")
+    parser.add_argument("--length",   type=float, default=3.0,
+                        help="Generated clip length in seconds (default: 3.0)")
+    parser.add_argument("--device",   type=str,   default="mps",
+                        help="torch device: mps | cuda | cpu (default: mps)")
     args = parser.parse_args()
 
     today   = date.today().strftime("%Y%m%d")
     out_dir = RESULTS_DIR / f"diffusion_experiment_{today}"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # ── CLAP encoder (Synthetroniq backend) ────────────────────────────────────
+    # ── CLAP encoder (standalone, from models/clap_head.py) ───────────────────
+    # ClapMlpHead.embed() uses laion/clap-htsat-unfused directly via HuggingFace.
+    # No checkpoint file needed — we only use the frozen backbone, not the MLP.
     print("Loading CLAP encoder (laion/clap-htsat-unfused)...")
-    from synthetroniq.embeddings.clap import ClapEncoder
-    from synthetroniq.search.tagger  import AudioTagger
-    encoder = ClapEncoder()
-    tagger  = AudioTagger(encoder)
+    import sys
+    sys.path.insert(0, str(REPO_ROOT))
+    from models.clap_head import ClapMlpHead
+    clap = ClapMlpHead(synth_type="fm2op")
+    clap._load_clap()  # pre-warm so per-patch timing is clean
 
-    # ── Load patches ───────────────────────────────────────────────────────────
+    # ── Load patches ──────────────────────────────────────────────────────────
+    patches = DEFAULT_PATCHES
+    audio_dir = args.audio_dir
+
     print("\nLoading patches and computing reference CLAP embeddings...")
     loaded: list[dict] = []
-    for spec in PATCHES:
-        path = PREVIEWS / spec["label"]
+    skipped = 0
+    for spec in patches:
+        if audio_dir is None:
+            print(f"  [SKIP] {spec['label']} — no --audio-dir provided")
+            skipped += 1
+            continue
+        path = audio_dir / spec["label"]
         if not path.exists():
             print(f"  [SKIP] {path} not found")
+            skipped += 1
             continue
         raw, sr = sf.read(str(path), dtype="float32", always_2d=False)
         audio   = _resample(_mono(raw), sr, SR_CLAP)
-        clip    = audio[:int(3.0 * SR_CLAP)]  # first 3 s for embedding
-        emb     = encoder.encode_audio(clip, SR_CLAP)
-        tags    = tagger.tag(emb)
+        emb     = _embed(clap, audio)
         print(f"  {spec['label']}")
-        print(f"    tags: {tags[:6]}")
-        loaded.append({**spec, "audio": audio, "emb": emb, "tags": tags})
+        loaded.append({**spec, "audio": audio, "emb": emb})
 
     if not loaded:
-        print("No patches found. Check SYNTH_ROOT path.")
+        if skipped == len(patches):
+            print("\nNo audio files loaded.")
+            print("Provide --audio-dir pointing to a directory containing the patch files.")
+            print("Example: python benchmarks/diffusion_experiment.py --audio-dir /path/to/previews")
         return
 
-    # ── AudioLDM2 pipeline ─────────────────────────────────────────────────────
+    # ── AudioLDM2 pipeline ────────────────────────────────────────────────────
     print(f"\nLoading {AUDIOLDM2_MODEL}  (~1.5 GB, cached after first run)...")
     import torch
     from diffusers import AudioLDM2Pipeline
@@ -161,7 +183,7 @@ def main() -> None:
         pipe.language_model = _GPT2LMHead.from_pretrained(lm_path, torch_dtype=dtype).to(device)
         print("  (applied GPT2LMHeadModel patch for transformers 5.x compatibility)")
 
-    # ── Generate and evaluate ──────────────────────────────────────────────────
+    # ── Generate and evaluate ─────────────────────────────────────────────────
     neg_prompt = "speech, voice, noise, drums, percussion, distortion, crackling"
     results    = []
 
@@ -170,15 +192,13 @@ def main() -> None:
         print(f"\n{'='*60}")
         print(f"  {label}")
         print(f"  note:  {pd['note']}")
-        print(f"  tags:  {pd['tags'][:6]}")
         print(f"  short: {pd['short'][:80]}")
 
         row: dict = {
-            "label":  label,
-            "note":   pd["note"],
-            "tags":   pd["tags"],
-            "short":  pd["short"],
-            "long":   pd["long"],
+            "label": label,
+            "note":  pd["note"],
+            "short": pd["short"],
+            "long":  pd["long"],
         }
 
         for strategy in ("short", "long"):
@@ -198,12 +218,12 @@ def main() -> None:
                 )
             gen_16k = out.audios[0]  # float32 ndarray
 
-            safe = label.replace("/", "_").replace(".flac", "")
+            safe     = label.replace("/", "_").replace(".flac", "")
             wav_path = out_dir / f"{safe}_{strategy}.wav"
             sf.write(str(wav_path), gen_16k, SR_GEN)
 
             gen_48k = _resample(gen_16k, SR_GEN, SR_CLAP)
-            gen_emb = encoder.encode_audio(gen_48k, SR_CLAP)
+            gen_emb = _embed(clap, gen_48k)
             sim     = _cosine(pd["emb"], gen_emb)
 
             print(f"  CLAP similarity: {sim:.4f}  → {wav_path.name}")
@@ -212,7 +232,7 @@ def main() -> None:
 
         results.append(row)
 
-    # ── Cross-patch baseline ───────────────────────────────────────────────────
+    # ── Cross-patch baseline ──────────────────────────────────────────────────
     cross = [
         _cosine(loaded[i]["emb"], loaded[j]["emb"])
         for i in range(len(loaded))
@@ -220,39 +240,40 @@ def main() -> None:
     ]
     baseline = round(float(np.mean(cross)), 4) if cross else None
 
-    # ── Summary ────────────────────────────────────────────────────────────────
+    # ── Summary ───────────────────────────────────────────────────────────────
     short_sims = [r["short_sim"] for r in results if "short_sim" in r]
     long_sims  = [r["long_sim"]  for r in results if "long_sim"  in r]
 
     summary = {
-        "date":             today,
-        "model":            AUDIOLDM2_MODEL,
-        "steps":            args.steps,
-        "length_s":         args.length,
-        "device":           device,
-        "n_patches":        len(results),
-        "cross_patch_baseline": baseline,
-        "short_prompt_mean": round(float(np.mean(short_sims)), 4) if short_sims else None,
-        "long_prompt_mean":  round(float(np.mean(long_sims)),  4) if long_sims  else None,
-        "short_prompt_max":  round(float(np.max(short_sims)),  4) if short_sims else None,
-        "long_prompt_max":   round(float(np.max(long_sims)),   4) if long_sims  else None,
-        "patches": results,
+        "date":                  today,
+        "model":                 AUDIOLDM2_MODEL,
+        "steps":                 args.steps,
+        "length_s":              args.length,
+        "device":                device,
+        "n_patches":             len(results),
+        "cross_patch_baseline":  baseline,
+        "short_prompt_mean":     round(float(np.mean(short_sims)), 4) if short_sims else None,
+        "long_prompt_mean":      round(float(np.mean(long_sims)),  4) if long_sims  else None,
+        "short_prompt_max":      round(float(np.max(short_sims)),  4) if short_sims else None,
+        "long_prompt_max":       round(float(np.max(long_sims)),   4) if long_sims  else None,
+        "patches":               results,
     }
 
     json_path = out_dir / f"diffusion_experiment_{today}.json"
     with open(json_path, "w") as f:
         json.dump(summary, f, indent=2)
 
-    # ── Print table ────────────────────────────────────────────────────────────
+    # ── Print table ───────────────────────────────────────────────────────────
     print(f"\n{'='*60}")
-    print(f"Cross-patch baseline (avg pairwise CLAP sim): {baseline:.4f}")
+    if baseline is not None:
+        print(f"Cross-patch baseline (avg pairwise CLAP sim): {baseline:.4f}")
     print()
     print(f"{'Label':<45}  {'short':>6}  {'long':>6}")
     print("-" * 60)
     for r in results:
         name = r["label"].split("/")[-1].replace(".flac", "")[:44]
         s = f"{r.get('short_sim', 0):.4f}"
-        g = f"{r.get('long_sim', 0):.4f}"
+        g = f"{r.get('long_sim',  0):.4f}"
         print(f"{name:<45}  {s:>6}  {g:>6}")
     print()
     if short_sims:

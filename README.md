@@ -27,9 +27,8 @@ The CNN showed promise on simple FM sounds but required a working VST host and
 
 ### Revival (2026) — CLAP backbone, pure-numpy generators
 
-Revived as a backend component for [Synthetroniq](https://github.com/crodriguez1a/synthetroniq),
-a synth patch search engine. The goal: given a patch audio file, synthesise a
-melody using the patch's timbral character.
+Revived as a backend component for a synth patch search engine. The goal: given a
+patch audio file, synthesise a melody using the patch's timbral character.
 
 Key changes from the original:
 
@@ -83,8 +82,8 @@ make infer AUDIO=audio/samples/Yamaha-DX7-Bass-C2.wav SYNTH=fm2op MIDI="48 52 55
 
 ### Benchmark (library confidence)
 
-Requires a running [Synthetroniq](https://github.com/crodriguez1a/synthetroniq)
-backend with `SYNTHETRONIQ_INVERSYNTH_CHECKPOINT` set:
+Requires a running backend that exposes `GET /audio/melody/confidence?label=...`
+and has an InverSynth checkpoint loaded:
 
 ```bash
 make benchmark              # 50 brands, seed 42
