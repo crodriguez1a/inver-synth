@@ -23,12 +23,14 @@ import torch
 import torch.nn as nn
 
 from generators.fm_numpy import N_FM_PARAMS
+from generators.fm2op import N_FM2OP_PARAMS
 from generators.wavetable_generator import N_WT_PARAMS
 from generators.subtractive_generator import N_SUB_PARAMS
 
-SYNTH_TYPES = ("fm", "wavetable", "subtractive")
+SYNTH_TYPES = ("fm", "fm2op", "wavetable", "subtractive")
 N_PARAMS: dict[str, int] = {
     "fm":          N_FM_PARAMS,
+    "fm2op":       N_FM2OP_PARAMS,
     "wavetable":   N_WT_PARAMS,
     "subtractive": N_SUB_PARAMS,
 }

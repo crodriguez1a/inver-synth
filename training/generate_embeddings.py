@@ -31,6 +31,10 @@ def _gen_sample(synth_type: str, sr: int, length: float):
         from generators.fm_numpy import N_FM_PARAMS, fm_render
         params = np.random.rand(N_FM_PARAMS).astype(np.float32)
         audio  = fm_render(params, sr=sr, length=length)
+    elif synth_type in ("fm2op", "fm2"):
+        from generators.fm2op import N_FM2OP_PARAMS, fm2op_render
+        params = np.random.rand(N_FM2OP_PARAMS).astype(np.float32)
+        audio  = fm2op_render(params, sr=sr, length=length)
     elif synth_type in ("wt", "wavetable"):
         from generators.wavetable_generator import N_WT_PARAMS, wavetable_render
         params = np.random.rand(N_WT_PARAMS).astype(np.float32)
@@ -106,7 +110,7 @@ def generate(
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Pre-compute CLAP embeddings for synth training data.")
-    ap.add_argument("--synth",  required=True, choices=["fm", "wt", "wavetable", "sub", "subtractive"])
+    ap.add_argument("--synth",  required=True, choices=["fm", "fm2op", "fm2", "wt", "wavetable", "sub", "subtractive"])
     ap.add_argument("--n",      type=int, default=50_000, help="Number of random examples")
     ap.add_argument("--out",    required=True, help="Output .npz path")
     ap.add_argument("--sr",     type=int, default=48_000)

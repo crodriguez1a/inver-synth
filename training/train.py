@@ -121,7 +121,7 @@ def _train(
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Train MLP regression head on pre-computed embeddings.")
-    ap.add_argument("--synth",   required=True, choices=["fm", "wavetable", "subtractive"])
+    ap.add_argument("--synth",   required=True, choices=["fm", "fm2op", "wavetable", "subtractive"])
     ap.add_argument("--data",    required=True, help="Path to .npz from generate_embeddings.py")
     ap.add_argument("--out",     default="checkpoints/model.pt")
     ap.add_argument("--epochs",  type=int,   default=200)

@@ -55,6 +55,26 @@ class InverSynthInferencer:
         """Return normalised synth parameters in [0, 1]."""
         return self.model.predict_from_audio(audio, sr=sr)
 
+    def compute_confidence(self, audio: np.ndarray, sr: int = 48_000) -> float:
+        """Cosine similarity between input and re-synthesized CLAP embeddings.
+
+        Synthesizes a 1-second note at C4 from the predicted parameters, then
+        measures how similar its CLAP embedding is to the original patch's
+        embedding.  Range [0, 1] — higher means the FM approximation is closer
+        to the input timbre in CLAP's embedding space.
+
+        Note: CLAP embeddings are L2-normalised by the model, so cosine
+        similarity equals the dot product.
+        """
+        emb_in = self.model.embed(audio, sr=sr)           # (512,)
+        params  = self.model.head_forward(emb_in)          # (n_params,)
+        synth   = self.synthesize_note(params, length=1.0, pitch_midi=60, sr=sr)
+        emb_out = self.model.embed(synth, sr=sr)           # (512,)
+
+        dot  = float(np.dot(emb_in, emb_out))
+        norm = float(np.linalg.norm(emb_in) * np.linalg.norm(emb_out))
+        return float(np.clip(dot / (norm + 1e-8), 0.0, 1.0))
+
     def synthesize_note(
         self,
         params: np.ndarray,
@@ -63,7 +83,11 @@ class InverSynthInferencer:
         sr: int = 48_000,
     ) -> np.ndarray:
         """Render a single note from predicted params at the given MIDI pitch."""
-        if self.synth_type == "fm":
+        if self.synth_type == "fm2op":
+            from generators.fm2op import fm2op_render
+            return fm2op_render(params, sr=sr, length=length,
+                                pitch_override_midi=pitch_midi)
+        elif self.synth_type == "fm":
             from generators.fm_numpy import _midi_to_hz, fm_render
             return fm_render(params, sr=sr, length=length,
                              pitch_override_midi=pitch_midi)
