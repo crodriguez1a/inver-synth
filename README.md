@@ -168,7 +168,7 @@ Five paths to improve quality, documented in [`docs/research-roadmap.md`](docs/r
 
 Current blocker: the model approximates ~28% of the library well. FM hardware patches
 score higher (Yamaha DX100: ~41%, Alesis Airsynth: 62%). The melody feature in
-Synthetroniq is currently parked pending improvements.
+the consumer application is currently parked pending improvements.
 
 ---
 

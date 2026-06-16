@@ -1,18 +1,17 @@
 """Library confidence benchmark.
 
-Samples patches uniformly across brands from the Synthetroniq library and
-scores each one using the InverSynth re-synthesis confidence endpoint.
+Samples patches uniformly across brands from the patch library and scores each
+one using the InverSynth re-synthesis confidence endpoint.
 
 Usage:
     python benchmarks/library_confidence.py [--url URL] [--n N] [--seed SEED] [--out FILE]
 
-    --url   Base URL of the running Synthetroniq backend  (default: http://localhost:8000)
+    --url   Base URL of the running backend  (default: http://localhost:8000)
     --n     Number of brands to sample — one patch per brand (default: 50)
-    --seed  Random seed for reproducibility               (default: 42)
-    --out   Write full results to this JSON file          (default: benchmarks/results/library_confidence_<date>.json)
+    --seed  Random seed for reproducibility                  (default: 42)
+    --out   Write full results to this JSON file             (default: benchmarks/results/library_confidence_<date>.json)
 
-The backend must be running with InverSynth enabled:
-    make backend-inversynth   # or make macos-inversynth
+The backend must be running with an InverSynth checkpoint loaded.
 """
 
 from __future__ import annotations

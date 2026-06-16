@@ -90,7 +90,7 @@ infer: $(CKPT_DIR)/$(SYNTH).pt
 		--out $(OUT)
 
 # ── Benchmarks ─────────────────────────────────────────────────────────────────
-# Requires a running Synthetroniq backend with InverSynth enabled.
+# Requires a running backend with InverSynth enabled (see README).
 #   make benchmark               # 50 brands, default seed
 #   make benchmark N=100 SEED=7  # larger sample, different seed
 

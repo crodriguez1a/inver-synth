@@ -1,7 +1,7 @@
 """InverSynth inference — audio → synth parameters → re-synthesized audio.
 
-This module is the integration point for Synthetroniq's backend.  The
-backend can import `render_melody` directly once a checkpoint exists.
+Standalone tool and importable API for audio → synth parameters → re-synthesized audio.
+The backend can import `render_melody` directly once a checkpoint exists.
 
 Standalone usage
 ----------------
@@ -12,7 +12,7 @@ Standalone usage
         --midi 64 \\
         --out melody.wav
 
-Python API (for Synthetroniq integration)
+Python API (backend integration)
 -----------------------------------------
     from inference.infer import InverSynthInferencer, render_melody
 
@@ -117,7 +117,7 @@ class InverSynthInferencer:
         patch_audio : float32 mono array at *sr*
         sr          : sample rate of patch_audio
         notes       : list of (onset_s, offset_s, pitch_midi, amplitude)
-        out_sr      : output sample rate (default 48 kHz, matches Synthetroniq)
+        out_sr      : output sample rate (default 48 kHz, matches CLAP requirement)
         """
         params = self.predict_params(patch_audio, sr=sr)
         if not notes:
