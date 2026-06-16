@@ -1,0 +1,189 @@
+# InverSynth — Research Roadmap
+
+## What was built (June 2026)
+
+A CLAP-backbone + MLP regression head that estimates 2-operator FM synthesizer parameters
+from a 512-dim CLAP audio embedding.
+
+**Architecture**
+- Backbone: `laion/clap-htsat-unfused` (frozen, 512-dim pooled output)
+- Head: MLP 512 → 256 → 128 → 7, sigmoid output (all params normalised to [0,1])
+- Loss: MSE on parameter coordinates
+- Optimizer: AdamW + CosineAnnealingLR
+
+**Generator: 2-operator sine FM (`generators/fm2op.py`)**
+```
+y(t) = sin(2π·fc·t + I·sin(2π·fm·t))    where fm = ratio × fc
+```
+Parameters (7): `pitch | ratio (int 1–8) | mod_index (0–10) | attack | decay | sustain | release`
+
+Integer modulator ratios guarantee harmonic sidebands at every point in parameter space —
+every random combination sounds musical. This was the key insight that made training viable
+after a 4-operator random FM model produced mostly noise.
+
+**Training run**
+- Corpus: 50k synthetic clips, 48 kHz, 1 s each
+- Epochs: 200 (best at epoch 101)
+- Best val MSE: 0.035
+- Device: Apple MPS
+- Checkpoint: `checkpoints/fm2op.pt`
+
+**Confidence metric: re-synthesis cosine similarity**
+
+At inference time, the model predicts FM params, synthesises a C4 note from them,
+re-embeds with CLAP, and computes cosine similarity between the input embedding and the
+re-synthesis embedding. This is the only audio-space quality signal available without
+ground-truth parameters.
+
+---
+
+## Library confidence results (2026-06-16)
+
+50 patches sampled uniformly across 50 brands from the Synthetroniq patch library (6920 patches).
+Full results in `benchmarks/results/library_confidence_20260616.json`.
+
+| Statistic | Score |
+|-----------|-------|
+| Mean      | 28.7% |
+| Median    | 28.5% |
+| Max       | 62.4% (Alesis Airsynth / 14-LFO-Abuse) |
+| Min       | 5.0%  (Alesis Quadrasynth Plus Piano / 101-Gulch) |
+
+**Top 10 — most FM-approximable**
+
+| Score | Patch |
+|-------|-------|
+| 62%   | Alesis Airsynth / 14-LFO-Abuse |
+| 47%   | Generalmusic Equinox 61 / 004-Outburst |
+| 46%   | Moog Rogue / 04-ELECTRIC-PIANO |
+| 42%   | Bit One / 30 |
+| 42%   | Roland Fantom Xr / 065-Super-G-DX |
+| 41%   | Roland SE-02 / 40-Da-Lead-2 |
+| 41%   | Access Virus A / B37-IQ-PAD-RP |
+| 41%   | Yamaha DX100 / 16-Mono-Sax |
+| 40%   | ASM Hydrasynth / C113-Synphony |
+| 39%   | Roland XV-5080 / 111-Tap-Bass |
+
+**Bottom 10 — least FM-approximable**
+
+| Score | Patch |
+|-------|-------|
+| 16%   | E-mu Emulator III / Alex-Stone-Lux-Aeterna (orchestral sample) |
+| 12%   | Roland SRX-08 / 381-Lo-Fi-Wurli |
+| 9%    | Roland D-10 / A68-Timbass |
+| 5%    | Alesis Quadrasynth Plus Piano / 101-Gulch (ROMpler piano) |
+
+**Interpretation**: The model correctly discriminates FM-native hardware (Airsynth, DX100) from
+sample-based instruments (Emulator III, Quadrasynth Piano). The ~28% mean reflects the hard
+ceiling of 2-op FM expressiveness, not a failure of the regression head — most patches in this
+library are multi-oscillator analog, ROM samples, or wavetable sounds that no 2-op FM model
+can represent faithfully.
+
+---
+
+## Why it's not production-ready
+
+1. **Wrong training objective**: MSE on normalised parameter coordinates is a poor proxy for
+   perceptual similarity. A 5% error in `ratio` crosses an integer boundary and completely
+   changes the timbre.
+
+2. **Synthetic → real gap**: Training on random parameter combinations doesn't match the
+   distribution of musical FM patches, which cluster around specific timbral regions.
+
+3. **Expressiveness ceiling**: 2-op FM covers a subset of FM sounds. Most hardware patches
+   use 4–6 operators with complex routing algorithms.
+
+4. **No generalization beyond FM**: Approximately 70% of the library cannot be meaningfully
+   approximated with FM synthesis at all.
+
+---
+
+## Improvement paths
+
+### Path 1 — Perceptual loss in training
+*Effort: ~2 days. Highest ROI for the existing architecture.*
+
+Replace or augment the MSE loss with a re-synthesis cosine loss:
+
+```
+total_loss = MSE(pred_params, true_params) + α * (1 − cosine(CLAP(render(pred_params)), CLAP(render(true_params))))
+```
+
+This directly optimises the confidence metric. CLAP is frozen so the re-synthesis embedding
+is computed with `torch.no_grad()` and the gradient only flows back through the MLP head.
+Running the perceptual term every N steps (not every batch) keeps training cost manageable.
+
+Expected outcome: noticeably better re-synthesis quality on FM-like patches without any
+architectural changes.
+
+### Path 2 — Real DX7 patch data
+*Effort: ~3–4 days. Fixes the synthetic→real distribution gap.*
+
+Large banks of Yamaha DX7 sysex presets are freely available (30k+ patches total).
+Dexed is an open-source, headless DX7 emulator that can render them programmatically.
+
+Steps:
+1. Collect sysex banks, parse with a Python sysex parser
+2. Render each patch at C4 via Dexed CLI
+3. Embed with CLAP → train on real hardware patch distribution
+
+The DX7 uses 6 operators; options are:
+- Build a 6-op renderer (more expressive, harder to train)
+- Project 6-op params to 2-op via dimensionality reduction (simpler, lossy)
+- Train a 6-op model and keep 2-op as a fallback for non-DX patches
+
+Expected outcome: much stronger results on FM hardware patches specifically; the model
+learns the actual distribution of musical FM sounds rather than uniform random noise.
+
+### Path 3 — Differentiable synthesis
+*Effort: ~1 week. Most principled approach.*
+
+Rewrite `fm2op_render` in PyTorch (sin, linspace, and ADSR are all differentiable).
+Then the full training graph becomes:
+
+```
+frozen CLAP emb → MLP head → synth params → PyTorch FM render → frozen CLAP → cosine loss
+```
+
+Gradients flow from audio-space reconstruction loss directly back through the synthesiser
+into the MLP weights. No separate perceptual loss phase required — the whole thing is one
+differentiable objective. This is the DDSP (Differentiable Digital Signal Processing)
+paradigm applied to FM.
+
+Expected outcome: Path 1 quality improvement with a cleaner training setup. Also opens the
+door to multi-operator models where parameter-space MSE becomes even more meaningless.
+
+### Path 4 — Neural timbre transfer (skip parameter estimation)
+*Effort: ~2 weeks. Highest ceiling; works for all patch types.*
+
+Instead of estimating synth parameters, train a CLAP-conditioned neural vocoder:
+
+```
+(CLAP embedding, target f0 sequence) → neural vocoder → audio
+```
+
+The model learns to synthesise audio with the timbre of any patch at any requested pitch,
+without going through a parameter bottleneck. Architecture candidates: HiFi-GAN conditioned
+on CLAP, RAVE, or a simpler MLP-Mixer decoder.
+
+Training data already exists: 6920 patches × preview audio, each with a known CLAP
+embedding. Generating pitched variants (C2–C7) per patch for training is straightforward.
+
+This approach generalises to the full library — sampled instruments, wavetable, analog,
+digital — not just FM-approximable sounds. The tradeoff is training complexity and the need
+for a neural inference runtime at the backend.
+
+---
+
+## Re-enabling the feature
+
+The melody button in the Flutter app is disabled via `_melodyEnabled = false` in
+`mobile/lib/features/search/widgets/result_card.dart`. Set it to `true` to restore
+the button, confidence bar, and lazy confidence fetch.
+
+The backend endpoints remain intact:
+- `GET /audio/melody?label=...` — renders FM melody via InverSynth (falls back to pitch-shift)
+- `GET /audio/melody/confidence?label=...` — returns re-synthesis cosine similarity score
+
+The backend loads InverSynth from `SYNTHETRONIQ_INVERSYNTH_CHECKPOINT` at startup.
+Use `make macos-inversynth` or `make backend-inversynth` to start with it enabled.

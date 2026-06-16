@@ -89,6 +89,20 @@ infer: $(CKPT_DIR)/$(SYNTH).pt
 		--midi $(MIDI) \
 		--out $(OUT)
 
+# ── Benchmarks ─────────────────────────────────────────────────────────────────
+# Requires a running Synthetroniq backend with InverSynth enabled.
+#   make benchmark               # 50 brands, default seed
+#   make benchmark N=100 SEED=7  # larger sample, different seed
+
+BENCH_URL  ?= http://localhost:8000
+BENCH_N    ?= 50
+BENCH_SEED ?= 42
+
+.PHONY: benchmark
+benchmark:
+	$(PY) benchmarks/library_confidence.py \
+		--url $(BENCH_URL) --n $(BENCH_N) --seed $(BENCH_SEED)
+
 # ── Utilities ──────────────────────────────────────────────────────────────────
 
 .PHONY: clean-data clean-checkpoints clean
