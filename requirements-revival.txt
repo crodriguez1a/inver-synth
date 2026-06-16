@@ -1,0 +1,14 @@
+# Revival branch (feature/clap-regression)
+# Python 3.10+ required.  Install with:
+#   pip install -r requirements-revival.txt
+#
+# The original requirements.txt (TF 2.1 / Python 3.7) is kept for the
+# legacy CNN branch.  The new CLAP+MLP pipeline uses PyTorch only.
+
+torch>=2.1.0
+transformers>=4.40.0
+numpy>=1.24.0
+soundfile>=0.12.0
+scipy>=1.10.0
+librosa>=0.10.0
+tqdm>=4.65.0
