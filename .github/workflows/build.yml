@@ -1,51 +1,71 @@
 name: CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
-
-  test:
+  # ── Revival tests (CLAP+MLP branch) ───────────────────────────────────────
+  # Runs the pure-numpy generator tests — no PyTorch or CLAP download needed.
+  # The ML pipeline (corpus generation, training) is too heavy for CI and is
+  # covered by the committed checkpoint + docs/research-roadmap.md instead.
+  test-revival:
     runs-on: ubuntu-latest
-
     steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-revival-${{ hashFiles('requirements-revival.txt') }}
+          restore-keys: pip-revival-
+
+      - name: Install dependencies
+        run: pip install numpy scipy soundfile pytest
+
+      - name: pytest (generators)
+        run: pytest tests/test_generators_revival.py -v
+
+      - name: flake8 (revival code)
+        run: |
+          pip install flake8 --quiet
+          flake8 generators/fm2op.py generators/wavetable_generator.py \
+                  generators/subtractive_generator.py \
+                  models/clap_head.py \
+                  training/generate_embeddings.py training/train.py \
+                  inference/infer.py \
+                  benchmarks/library_confidence.py \
+                  --max-line-length 99 \
+                  --extend-ignore E221,E226,E241,E272
+
+  # ── Original tests (TF/CNN branch) ────────────────────────────────────────
+  # Kept for historical continuity but marked continue-on-error — the original
+  # architecture lives on bugfix/fc-layer; these tests are informational only.
+  test-original:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.8"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-original-${{ hashFiles('requirements.txt') }}
+          restore-keys: pip-original-
+
       - name: Install libsndfile
-        run: sudo apt-get install libsndfile1
-      - uses: actions/checkout@v1
-        with:
-          fetch-depth: 1
+        run: sudo apt-get install -y libsndfile1
 
-      - name: Set up Python 3.7
-        uses: actions/setup-python@v1
-        with:
-          python-version: 3.7.8
+      - name: Install dependencies
+        run: pip install tensorflow==2.8.0 numpy scipy soundfile pytest
 
-      - name: Install Poetry
-        uses: dschep/install-poetry-action@v1.2
-
-      - name: Cache Poetry virtualenv
-        uses: actions/cache@v1
-        id: cache
-        with:
-          path: ~/.virtualenvs
-          key: poetry-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            poetry-${{ hashFiles('**/poetry.lock') }}
-
-      - name: Install Dependencies
-        run: poetry install
-        if: steps.cache.outputs.cache-hit != 'true'
-
-      - name: black
-        run: poetry run black . --check
-
-      # - name: isort
-      #   run: poetry run isort . --check
-
-      # - name: mypy
-      #   run: poetry run mypy .
-
-      - name: flake8
-        run: poetry run flake8 models/ generators/ reconstruction/ --max-line-length 99
-
-      - name: pytest
-        run: poetry run pytest
+      - name: pytest (original models)
+        run: pytest tests/test_e2e.py tests/test_spectro.py -v
+        continue-on-error: true

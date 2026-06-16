@@ -93,8 +93,7 @@ def _adsr(n: int, attack_s: float, decay_s: float, sustain_level: float,
     env[:a] = np.linspace(0.0, 1.0, a, dtype=np.float32) if a else []
     env[a:a+d] = np.linspace(1.0, sustain_level, d, dtype=np.float32) if d else []
     env[a+d:a+d+s] = sustain_level
-    env[a+d+s:] = np.linspace(sustain_level, 0.0, n - a - d - s,
-                               dtype=np.float32)
+    env[a+d+s:] = np.linspace(sustain_level, 0.0, n - a - d - s, dtype=np.float32)
     return env
 
 
