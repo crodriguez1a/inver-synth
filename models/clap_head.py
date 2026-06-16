@@ -100,12 +100,14 @@ class ClapMlpHead(nn.Module):
         """Return the 512-dim CLAP embedding for a single audio clip."""
         self._load_clap()
         inputs = self._processor(
-            audios=audio,
+            audio=audio,
             return_tensors="pt",
             sampling_rate=sr,
         )
-        emb = self._clap.get_audio_features(**inputs)  # (1, 512)
-        return emb[0].cpu().numpy()
+        out = self._clap.get_audio_features(**inputs)
+        # transformers ≥5.x returns BaseModelOutputWithPooling; <5.x returns Tensor
+        emb = out.pooler_output if hasattr(out, "pooler_output") else out
+        return emb[0].cpu().numpy()  # (512,)
 
     @torch.no_grad()
     def embed_batch(self, audios: list[np.ndarray], sr: int = 48_000) -> np.ndarray:

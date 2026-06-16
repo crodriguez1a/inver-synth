@@ -56,8 +56,15 @@ def generate(
     if seed is not None:
         np.random.seed(seed)
 
-    from models.clap_head import ClapMlpHead
-    embedder = ClapMlpHead(synth_type="fm")  # type doesn't matter — we use embed()
+    from models.clap_head import _CLAP_ID
+    from transformers import ClapModel, ClapProcessor
+    import torch
+
+    processor = ClapProcessor.from_pretrained(_CLAP_ID)
+    clap      = ClapModel.from_pretrained(_CLAP_ID)
+    clap.eval()
+    for p in clap.parameters():
+        p.requires_grad_(False)
 
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -81,8 +88,13 @@ def generate(
                 batch_params.append(p)
                 batch_audio.append(a)
 
-            embs = embedder.embed_batch(batch_audio, sr=sr)
-            embeddings[i:i+bs] = embs
+            # Batch-process through processor + CLAP in one forward pass
+            inputs = processor(audio=batch_audio, return_tensors="pt",
+                               sampling_rate=sr, padding=True)
+            with torch.no_grad():
+                out = clap.get_audio_features(**inputs)
+                emb = out.pooler_output if hasattr(out, "pooler_output") else out
+            embeddings[i:i+bs] = emb.cpu().numpy()
             params_arr[i:i+bs] = np.stack(batch_params)
             i += bs
             bar.update(bs)
