@@ -19,7 +19,7 @@ joblib==0.14.1
 kapre==0.1.7
 keras-applications==1.0.8
 keras-preprocessing==1.1.0
-keras==2.3.1
+keras==3.10.0
 librosa==0.7.2
 llvmlite==0.31.0
 markdown==3.2.1
