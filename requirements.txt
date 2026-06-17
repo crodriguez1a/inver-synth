@@ -46,7 +46,7 @@ tensorboard==2.1.1
 tensorflow-estimator==2.1.0
 tensorflow==2.1.0
 termcolor==1.1.0
-urllib3==1.25.8
+urllib3==2.6.3
 werkzeug==1.0.0
 wheel==0.34.2 ; python_version >= '3'
 wrapt==1.12.1
