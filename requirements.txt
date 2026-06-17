@@ -22,7 +22,7 @@ keras-preprocessing==1.1.0
 keras==2.3.1
 librosa==0.7.2
 llvmlite==0.31.0
-markdown==3.2.1
+markdown==3.8.1
 numba==0.48.0
 numpy==1.18.2
 oauthlib==3.1.0
